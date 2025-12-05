@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toko Daging Nusantara - E-Voucher</title>
+  <link rel="icon" type="image/png" href="images/logo-tdn.ico"/>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Background Image Container -->
+    <div class="background-wrapper">
+      <img src="images/homepage-1.jpeg" alt="Promo" class="background-image" id="backgroundImage">
+    </div>
+
+    <!-- Form Overlay (Initial State) -->
+    <div class="form-overlay" id="formOverlay">
+      <div class="form-group">
+        <label for="phoneNumber" class="form-label">Masukkan No Handphone</label>
+        <input 
+          type="tel" 
+          id="phoneNumber" 
+          placeholder="628xxx"
+          maxlength="14"
+          autocomplete="tel"
+          inputmode="numeric"
+          pattern="628[0-9]*"
+        >
+        <span class="error-message" id="errorMessage"></span>
+      </div>
+
+      <button id="downloadBtn" class="download-btn" disabled>
+        Download
+      </button>
+    </div>
+
+    <!-- Voucher Overlay (After Download) -->
+    <div class="voucher-overlay" id="voucherOverlay" style="display: none;">
+      <div class="voucher-content">
+        <div class="qr-wrapper">
+          <div id="qrCode"></div>
+        </div>
+        <div class="voucher-details">
+          <div class="voucher-number" id="voucherNumber">-</div>
+          <div class="voucher-phone" id="voucherPhone">08xx-xxx-xxx</div>
+          <div class="voucher-date" id="voucherDate">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

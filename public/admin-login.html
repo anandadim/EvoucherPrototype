@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Voucher System</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 100%;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .login-header p {
+      color: #666;
+      font-size: 14px;
+    }
+    .login-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    .back-home {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .back-home a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-home a:hover {
+      text-decoration: underline;
+    }
+    .default-credentials {
+      background: #fff3cd;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #856404;
+    }
+    .default-credentials strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-icon">🔐</div>
+      <h1>Admin Login</h1>
+      <p>Masuk ke panel admin voucher</p>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="username"
+          required
+          autocomplete="email"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="password"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+
+      <span class="error-message" id="errorMessage"></span>
+
+      <button type="submit" class="download-btn" id="loginBtn">
+        Login
+      </button>
+    </form>
+
+    <div class="back-home">
+      <a href="index.html">← Kembali ke Halaman Utama</a>
+    </div>
+  </div>
+
+  <script>
+    // Check if already logged in
+    async function checkSession() {
+      try {
+        const response = await fetch('/api/admin/check-auth');
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          // Already logged in, redirect to dashboard
+          window.location.href = 'admin.html';
+        }
+      } catch (error) {
+        // Not logged in, stay on login page
+        console.log('Not authenticated');
+      }
+    }
+
+    // Check session on page load
+    checkSession();
+
+    const loginForm = document.getElementById('loginForm');
+    const errorMessage = document.getElementById('errorMessage');
+    const loginBtn = document.getElementById('loginBtn');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Memproses...';
+      errorMessage.textContent = '';
+
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          window.location.href = 'admin.html';
+        } else {
+          errorMessage.textContent = data.error || 'Login gagal';
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'Login';
+        }
+      } catch (error) {
+        errorMessage.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>

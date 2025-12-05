@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create RT Placeholder Image</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    canvas {
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      max-width: 100%;
+      height: auto;
+    }
+    button {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #27ae60;
+    }
+    .info {
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border-left: 4px solid #2ecc71;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏘️ RT Homepage Placeholder Generator</h1>
+    
+    <div class="info">
+      <strong>📝 Instructions:</strong>
+      <ol>
+        <li>Canvas akan generate temporary placeholder image untuk RT homepage</li>
+        <li>Klik tombol "Download RT Placeholder" untuk save image</li>
+        <li>Save sebagai: <code>homepage-rt.jpeg</code></li>
+        <li>Upload ke folder: <code>public/images/</code></li>
+        <li>Nanti bisa diganti dengan design final</li>
+      </ol>
+    </div>
+
+    <canvas id="canvas" width="1200" height="1600"></canvas>
+    
+    <div>
+      <button onclick="downloadImage()">📥 Download RT Placeholder</button>
+    </div>
+    
+    <p style="color: #666; margin-top: 20px;">
+      <strong>Note:</strong> Ini temporary placeholder. Ganti dengan design final dari designer nanti.
+    </p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Create gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#2ecc71');
+    gradient.addColorStop(0.5, '#27ae60');
+    gradient.addColorStop(1, '#229954');
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Add pattern overlay
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const size = Math.random() * 100 + 50;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Add community icon (house symbol)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.font = 'bold 300px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏘️', canvas.width / 2, 400);
+
+    // Add main title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 80px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText('E-VOUCHER', canvas.width / 2, 650);
+    
+    ctx.font = 'bold 90px Arial';
+    ctx.fillText('KHUSUS WARGA RT', canvas.width / 2, 760);
+
+    // Add subtitle
+    ctx.font = '40px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowBlur = 5;
+    ctx.fillText('Voucher Eksklusif untuk Warga RT', canvas.width / 2, 860);
+
+    // Add decorative elements
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    // Top decoration
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fillRect(0, 0, canvas.width, 10);
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+    // Add benefits section
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillRect(100, 950, canvas.width - 200, 400);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 50px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('✨ Benefit Khusus:', 150, 1040);
+    
+    ctx.font = '40px Arial';
+    ctx.fillText('🏘️  Voucher eksklusif warga RT', 150, 1120);
+    ctx.fillText('🎁  Promo spesial komunitas', 150, 1190);
+    ctx.fillText('💚  Untuk tetangga tersayang', 150, 1260);
+
+    // Add footer note
+    ctx.font = 'italic 30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillText('Toko Daging Nusantara', canvas.width / 2, 1480);
+    ctx.fillText('Melayani dengan Hati', canvas.width / 2, 1530);
+
+    // Add "TEMPORARY" watermark
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(-Math.PI / 6);
+    ctx.font = 'bold 60px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.textAlign = 'center';
+    ctx.fillText('TEMPORARY PLACEHOLDER', 0, 0);
+    ctx.restore();
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'homepage-rt.jpeg';
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.click();
+      
+      alert('✅ Image downloaded!\n\nNext steps:\n1. Save as: homepage-rt.jpeg\n2. Upload to: public/images/\n3. Test dengan: ?utm_source=RT01');
+    }
+  </script>
+</body>
+</html>

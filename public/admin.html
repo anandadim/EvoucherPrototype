@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toko Daging Nusantara - E-Voucher</title>
+  <link rel="icon" type="image/png" href="images/logo-tdn.ico"/>
+  <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+  <div class="admin-container">
+    <header>
+      <div>
+        <h1>🎫 Admin Panel - Voucher System</h1>
+        <p style="margin-top: 5px; opacity: 0.9;">Selamat datang, <span id="adminName">Admin</span></p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="index.html" class="back-link">← Halaman Utama</a>
+        <button id="logoutBtn" class="back-link" style="border: none; cursor: pointer;">Logout</button>
+      </div>
+    </header>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+          <h3 id="totalQuota">0</h3>
+          <p>Total Kuota</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <h3 id="usedQuota">0</h3>
+          <p>Download</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+          <h3 id="remainingQuota">0</h3>
+          <p>Tersisa</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-info">
+          <h3 id="percentageUsed">0%</h3>
+          <p>Persentase</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quota Management -->
+    <div class="card">
+      <h2>⚙️ Pengaturan Kuota</h2>
+      <div class="quota-controls">
+        <div class="form-group">
+          <label for="quotaInput">Atur Kuota Voucher (Maksimal 100)</label>
+          <input type="number" id="quotaInput" min="1" max="100" value="100">
+        </div>
+        <div class="button-group">
+          <button id="updateQuotaBtn" class="btn btn-primary">Update Kuota</button>
+          <button id="resetQuotaBtn" class="btn btn-warning">Reset Kuota Terpakai</button>
+        </div>
+      </div>
+      
+      <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #e0e0e0;">
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="allowRedownloadCheckbox" style="width: auto; cursor: pointer;">
+            <span>Izinkan Download Berulang (Bypass pembatasan IP & User Agent)</span>
+          </label>
+          <span class="helper-text" style="color: #ff9800; font-weight: 600;">⚠️ Fitur Development: Nonaktifkan sebelum deploy!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voucher SRP Management -->
+    <div class="card">
+      <h2>🎫 Manajemen Voucher SRP</h2>
+      
+      <!-- RT Voucher Warning -->
+      <div id="rtVoucherWarning" style="display: none; padding: 15px; background: #ff9800; color: white; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
+        ⚠️ Peringatan: Voucher RT tersisa sedikit!
+      </div>
+
+      <!-- Regular Vouchers Stats -->
+      <h3 style="margin-bottom: 15px; margin-top: 0;">📦 Regular Vouchers (SRP-)</h3>
+      <div class="voucher-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #667eea;" id="voucherTotalRegular">0</div>
+          <div style="font-size: 14px; color: #666;">Total</div>
+        </div>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #4caf50;" id="voucherAvailableRegular">0</div>
+          <div style="font-size: 14px; color: #666;">Tersedia</div>
+        </div>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #f44336;" id="voucherUsedRegular">0</div>
+          <div style="font-size: 14px; color: #666;">Terpakai</div>
+        </div>
+      </div>
+
+      <!-- RT Vouchers Stats -->
+      <h3 style="margin-bottom: 15px;">🏘️ RT Vouchers (RTT-)</h3>
+      <div class="voucher-stats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #667eea;" id="voucherTotalRT">0</div>
+          <div style="font-size: 14px; color: #666;">Total</div>
+        </div>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #4caf50;" id="voucherAvailableRT">0</div>
+          <div style="font-size: 14px; color: #666;">Tersedia</div>
+        </div>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #f44336;" id="voucherUsedRT">0</div>
+          <div style="font-size: 14px; color: #666;">Terpakai</div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="csvFileInput">Upload File CSV Voucher Baru</label>
+        <input type="file" id="csvFileInput" accept=".csv" style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; cursor: pointer;">
+        <span class="helper-text">Format: Voucher Number, Store, Status, Created at</span>
+      </div>
+      <button id="uploadCsvBtn" class="btn btn-primary" disabled>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+        </svg>
+        Upload & Import CSV
+      </button>
+
+      <!-- Voucher List Table -->
+      <div style="margin-top: 30px;">
+        <h3 style="margin-bottom: 15px;">📋 Daftar Voucher</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nomor Voucher</th>
+                <th>Store</th>
+                <th>Tanggal Dibuat</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="voucherListTableBody">
+              <tr>
+                <td colspan="4" class="loading">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+          <div id="voucherPaginationInfo" style="color: #666; font-size: 14px;">
+            Showing 0 of 0 vouchers
+          </div>
+          <div id="voucherPaginationControls" style="display: flex; gap: 10px;">
+            <!-- Pagination buttons will be inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate Voucher Images (Bulk) -->
+    <div class="card">
+      <h2>🖼️ Generate Voucher Images (Bulk)</h2>
+      <p style="color: #666; margin-bottom: 20px;">Upload file CSV untuk generate voucher images secara massal</p>
+      
+      <!-- Download Template Button -->
+      <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+        <a href="/api/admin/download-csv-template" download class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          Download Template CSV
+        </a>
+        <span style="margin-left: 10px; color: #666; font-size: 14px; cursor: help;" title="Template CSV berisi format yang benar dengan contoh data. Download, isi data Anda, lalu upload kembali.">
+          ℹ️ <span style="text-decoration: underline;">Apa itu template?</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="bulkCsvFileInput">Upload File CSV</label>
+        <input type="file" id="bulkCsvFileInput" accept=".csv" style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; cursor: pointer;">
+        <span class="helper-text">Format CSV: Nama Customer, No Handphone, Tanggal Blasting, Kode Voucher SRP</span>
+      </div>
+
+      <div class="form-group" style="margin-top: 20px;">
+        <label for="templateSelect">Pilih Template Cabang</label>
+        <select id="templateSelect" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; width: 100%; cursor: pointer;">
+          <option value="voucher-template.jpeg">Default Template</option>
+          <option value="voucher-template-cibinong.jpg">Cabang Cibinong</option>
+          <option value="voucher-template-cileungsi.jpg">Cabang Cileungsi</option>
+        </select>
+        <span class="helper-text">Pilih template sesuai cabang untuk generate voucher</span>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button id="generateBulkBtn" class="btn btn-primary" disabled>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="display: inline-block; vertical-align: middle;">
+            <path d="M13 7H7v6h6V7z"/>
+            <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/>
+          </svg>
+          Generate Images
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="bulkProgress" style="display: none; margin-top: 20px;">
+        <div style="background: #f5f5f5; border-radius: 8px; padding: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-weight: 600;">Processing...</span>
+            <span id="bulkProgressText">0%</span>
+          </div>
+          <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+            <div id="bulkProgressBar" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch History -->
+      <div style="margin-top: 30px;">
+        <h3 style="margin-bottom: 15px;">📦 Batch History</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Batch ID</th>
+                <th>Tanggal</th>
+                <th>Total</th>
+                <th>Berhasil</th>
+                <th>Error</th>
+                <th>Images</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="batchHistoryTableBody">
+              <tr>
+                <td colspan="7" class="loading">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination Controls (rendered by Pagination component) -->
+        <div id="batchHistoryPaginationControls" style="margin-top: 20px;">
+          <!-- Pagination will be rendered here by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Data -->
+    <div class="card">
+      <h2>📥 Export Data</h2>
+      <div class="export-controls">
+        <p>Download data voucher yang sudah terdownload dalam format CSV</p>
+        <button id="exportCsvBtn" class="btn btn-success">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          Download CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Activity Logs -->
+    <div class="card">
+      <h2>📝 Log Aktivitas Admin</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Admin</th>
+              <th>Aksi</th>
+              <th>Detail</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr>
+              <td colspan="5" class="loading">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination Controls (rendered by Pagination component) -->
+      <div id="logsPaginationControls" style="margin-top: 20px;">
+        <!-- Pagination will be rendered here by JavaScript -->
+      </div>
+    </div>
+
+    <!-- IP Blocking Management -->
+    <div class="card">
+      <h2>🚫 Manajemen IP Address</h2>
+      <div class="ip-block-controls">
+        <div class="form-group">
+          <label for="ipAddressInput">IP Address</label>
+          <input type="text" id="ipAddressInput" placeholder="Contoh: 192.168.1.1">
+        </div>
+        <div class="form-group">
+          <label for="blockReasonInput">Alasan (Opsional)</label>
+          <input type="text" id="blockReasonInput" placeholder="Contoh: Spam, Abuse, dll">
+        </div>
+        <button id="blockIpBtn" class="btn btn-danger">🚫 Blokir IP</button>
+      </div>
+
+      <div class="table-container" style="margin-top: 20px;">
+        <table>
+          <thead>
+            <tr>
+              <th>IP Address</th>
+              <th>Alasan</th>
+              <th>Diblokir Oleh</th>
+              <th>Waktu</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="blockedIpsTableBody">
+            <tr>
+              <td colspan="6" class="loading">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Downloads Table -->
+    <div class="card">
+      <div class="table-header">
+        <h2>📋 Data Download Voucher</h2>
+        <div style="display: flex; gap: 10px;">
+          <button id="exportDownloadsBtn" class="btn btn-success">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            Export CSV
+          </button>
+          <button id="refreshBtn" class="btn btn-secondary">🔄 Refresh</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="downloadsTable">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nomor HP</th>
+              <th>Voucher Number</th>
+              <th>Source (RT)</th>
+              <th>IP Address</th>
+              <th>User Agent</th>
+              <th>Waktu Download</th>
+              <th class="action-column">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="8" class="loading">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination Controls (rendered by Pagination component) -->
+      <div id="downloadsPaginationControls" style="margin-top: 20px;">
+        <!-- Pagination will be rendered here by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Hapus</h3>
+      <p>Apakah Anda yakin ingin menghapus data ini?</p>
+      <div class="modal-buttons">
+        <button id="confirmDeleteBtn" class="btn btn-danger">Hapus</button>
+        <button id="cancelDeleteBtn" class="btn btn-secondary">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Blocked IP Modal -->
+  <div id="deleteBlockedIpModal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Hapus</h3>
+      <p>Apakah Anda yakin ingin menghapus record IP yang diblokir ini?</p>
+      <div class="modal-buttons">
+        <button id="confirmDeleteBlockedIpBtn" class="btn btn-danger">Hapus</button>
+        <button id="cancelDeleteBlockedIpBtn" class="btn btn-secondary">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin-script.js"></script>
+</body>
+</html>

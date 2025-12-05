@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Database
+*.db
+*.db-journal
+voucher_downloads.db*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Backup files
+*.backup
+*.backup-*
+*.save
+backups/
+
+# Uploads & Generated
+uploads/
+generated_vouchers/
+csv_archive/
+
+# Production folder (live server)
+EvoucherPrototype/
+
+# SSL certificates
+.well-known/
+*.pem
+*.key
+*.crt
+
+# CSV data files
+voucher_numbers_*.csv
+data/vouchers/*.csv
+
+# Test files
+test-*.html
+test-*.md

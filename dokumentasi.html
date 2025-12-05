@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi Sistem Voucher Elektronik</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 40px;
+    }
+    
+    .toc {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      margin-bottom: 40px;
+      border-radius: 8px;
+    }
+    
+    .toc h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    
+    .toc ul {
+      list-style: none;
+    }
+    
+    .toc li {
+      padding: 8px 0;
+    }
+    
+    .toc a {
+      color: #333;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .toc a:hover {
+      color: #667eea;
+    }
+    
+    .section {
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .section:last-child {
+      border-bottom: none;
+    }
+    
+    h2 {
+      color: #667eea;
+      font-size: 32px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    h3 {
+      color: #764ba2;
+      font-size: 24px;
+      margin: 25px 0 15px 0;
+    }
+    
+    h4 {
+      color: #555;
+      font-size: 18px;
+      margin: 20px 0 10px 0;
+    }
+    
+    p {
+      margin-bottom: 15px;
+      text-align: justify;
+    }
+    
+    ul, ol {
+      margin-left: 30px;
+      margin-bottom: 15px;
+    }
+    
+    li {
+      margin-bottom: 8px;
+    }
+    
+    .card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 20px 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .card h3 {
+      margin-top: 0;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .feature-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+    }
+    
+    .feature-card h4 {
+      color: #667eea;
+      margin-top: 0;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    tr:hover {
+      background: #f8f9fa;
+    }
+    
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #e83e8c;
+    }
+    
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+    
+    pre code {
+      background: none;
+      color: #f8f8f2;
+      padding: 0;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    
+    .badge-primary {
+      background: #667eea;
+      color: white;
+    }
+    
+    .badge-success {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .badge-warning {
+      background: #ff9800;
+      color: white;
+    }
+    
+    .badge-danger {
+      background: #f44336;
+      color: white;
+    }
+    
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .alert-info {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      color: #1976d2;
+    }
+    
+    .alert-warning {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      color: #f57c00;
+    }
+    
+    .alert-success {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      color: #388e3c;
+    }
+    
+    .footer {
+      background: #2d2d2d;
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+    }
+    
+    .print-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 50px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .print-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+      }
+      .print-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>📚 Dokumentasi Sistem Voucher Elektronik</h1>
+      <p>Panduan Lengkap Instalasi, Konfigurasi, dan Deployment</p>
+    </div>
+
+    <div class="content">
+      <!-- Table of Contents -->
+      <div class="toc">
+        <h2>📋 Daftar Isi</h2>
+        <ul>
+          <li><a href="#overview">1. Overview Aplikasi</a></li>
+          <li><a href="#fitur">2. Fitur-Fitur</a></li>
+          <li><a href="#struktur">3. Struktur Project</a></li>
+          <li><a href="#database">4. Database Schema</a></li>
+          <li><a href="#api">5. API Endpoints</a></li>
+          <li><a href="#instalasi">6. Instalasi & Setup</a></li>
+          <li><a href="#menjalankan">7. Cara Menjalankan</a></li>
+          <li><a href="#deployment">8. Deployment ke Hosting</a></li>
+          <li><a href="#troubleshooting">9. Troubleshooting</a></li>
+        </ul>
+      </div>
+
+      <!-- Section 1: Overview -->
+      <div class="section" id="overview">
+        <h2>🎯 1. Overview Aplikasi</h2>
+        <p>Sistem Voucher Elektronik adalah aplikasi web untuk distribusi voucher digital dengan berbagai fitur manajemen yang lengkap.</p>
+        
+        <div class="card">
+          <h3>Fitur Utama</h3>
+          <ul>
+            <li>Download voucher otomatis dengan QR Code</li>
+            <li>Preview voucher sebelum download</li>
+            <li>Admin panel untuk manajemen voucher</li>
+            <li>Import voucher dari CSV</li>
+            <li>Tracking download dengan IP & User Agent</li>
+            <li>Blocking IP address</li>
+            <li>Export data ke CSV</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Teknologi yang Digunakan</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+            <span class="badge badge-primary">Node.js</span>
+            <span class="badge badge-primary">Express.js</span>
+            <span class="badge badge-success">SQLite3</span>
+            <span class="badge badge-warning">HTML/CSS/JS</span>
+            <span class="badge badge-danger">QRCode</span>
+            <span class="badge badge-primary">Canvas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Fitur -->
+      <div class="section" id="fitur">
+        <h2>✨ 2. Fitur-Fitur</h2>
+        
+        <h3>🎫 Halaman User (Public)</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📱 Input Nomor HP</h4>
+            <ul>
+              <li>Validasi nomor HP (628xxxxxxxxx)</li>
+              <li>Minimal 11 digit, maksimal 14 digit</li>
+              <li>Hanya menerima angka</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>👁️ Preview Voucher</h4>
+            <ul>
+              <li>Otomatis muncul saat nomor HP valid</li>
+              <li>Menampilkan voucher yang akan didapat</li>
+              <li>QR Code preview</li>
+              <li>Info store dan nomor voucher</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>⬇️ Download Voucher</h4>
+            <ul>
+              <li>Generate voucher dalam format PNG</li>
+              <li>Berisi QR Code, nomor voucher, store</li>
+              <li>Satu IP/device hanya bisa download 1x</li>
+            </ul>
+          </div>
+
+          
+          <div class="feature-card">
+            <h4>🚫 Pembatasan Download</h4>
+            <ul>
+              <li>Deteksi IP Address</li>
+              <li>Deteksi User Agent</li>
+              <li>Cek kuota voucher tersedia</li>
+              <li>Cek IP yang diblokir</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>🔐 Admin Panel</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📊 Dashboard Statistik</h4>
+            <ul>
+              <li>Total kuota voucher</li>
+              <li>Jumlah download</li>
+              <li>Voucher tersisa</li>
+              <li>Persentase penggunaan</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>⚙️ Manajemen Kuota</h4>
+            <ul>
+              <li>Update total kuota</li>
+              <li>Reset kuota terpakai</li>
+              <li>Toggle allow redownload</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>🎫 Manajemen Voucher SRP</h4>
+            <ul>
+              <li>Upload CSV voucher baru</li>
+              <li>Statistik voucher</li>
+              <li>Import otomatis ke database</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>📥 Export Data</h4>
+            <ul>
+              <li>Download data dalam CSV</li>
+              <li>Berisi semua informasi download</li>
+            </ul>
+          </div>
+
+          
+          <div class="feature-card">
+            <h4>📝 Log Aktivitas</h4>
+            <ul>
+              <li>Tracking semua aksi admin</li>
+              <li>Login/logout</li>
+              <li>Update settings</li>
+              <li>Block/unblock IP</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4>🚫 Manajemen IP</h4>
+            <ul>
+              <li>Block IP address</li>
+              <li>Unblock IP address</li>
+              <li>Delete blocked IP record</li>
+              <li>Lihat alasan blocking</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Struktur Project -->
+      <div class="section" id="struktur">
+        <h2>📁 3. Struktur Project</h2>
+        <pre><code>voucher-system/
+├── public/
+│   ├── index.html              # Halaman utama user
+│   ├── style.css               # Styling halaman user
+│   ├── script.js               # Logic halaman user
+│   ├── admin-login.html        # Halaman login admin
+│   ├── admin.html              # Dashboard admin
+│   ├── admin-style.css         # Styling admin panel
+│   └── admin-script.js         # Logic admin panel
+├── server.js                   # Backend server (Express.js)
+├── voucher_downloads.db        # Database SQLite
+├── package.json                # Dependencies
+└── node_modules/               # Installed packages</code></pre>
+      </div>
+
+
+      <!-- Section 4: Database Schema -->
+      <div class="section" id="database">
+        <h2>🗄️ 4. Database Schema</h2>
+        
+        <h3>Tabel: downloads</h3>
+        <p>Menyimpan data setiap download voucher.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>id</code></td>
+              <td>INTEGER PRIMARY KEY</td>
+              <td>ID unik download</td>
+            </tr>
+            <tr>
+              <td><code>phone_number</code></td>
+              <td>TEXT</td>
+              <td>Nomor HP user (628xxx)</td>
+            </tr>
+            <tr>
+              <td><code>ip_address</code></td>
+              <td>TEXT</td>
+              <td>IP address user</td>
+            </tr>
+            <tr>
+              <td><code>user_agent</code></td>
+              <td>TEXT</td>
+              <td>Browser fingerprint</td>
+            </tr>
+            <tr>
+              <td><code>voucher_code</code></td>
+              <td>TEXT</td>
+              <td>Kode voucher yang digenerate</td>
+            </tr>
+            <tr>
+              <td><code>download_time</code></td>
+              <td>DATETIME</td>
+              <td>Waktu download</td>
+            </tr>
+          </tbody>
+        </table>
+
+
+        <h3>Tabel: voucher_settings</h3>
+        <p>Menyimpan pengaturan sistem.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>id</code></td>
+              <td>INTEGER PRIMARY KEY</td>
+              <td>ID (selalu 1)</td>
+            </tr>
+            <tr>
+              <td><code>total_quota</code></td>
+              <td>INTEGER</td>
+              <td>Total kuota voucher</td>
+            </tr>
+            <tr>
+              <td><code>used_quota</code></td>
+              <td>INTEGER</td>
+              <td>Jumlah voucher terpakai</td>
+            </tr>
+            <tr>
+              <td><code>allow_redownload</code></td>
+              <td>INTEGER</td>
+              <td>Izinkan download berulang (0/1)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Tabel: admin_users</h3>
+        <p>Menyimpan data admin.</p>
+        <div class="alert alert-info">
+          <strong>Default Admin:</strong><br>
+          Email: <code>admin@voucher.com</code><br>
+          Password: <code>admin123</code>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>id</code></td>
+              <td>INTEGER PRIMARY KEY</td>
+              <td>ID admin</td>
+            </tr>
+            <tr>
+              <td><code>email</code></td>
+              <td>TEXT UNIQUE</td>
+              <td>Email admin</td>
+            </tr>
+            <tr>
+              <td><code>password</code></td>
+              <td>TEXT</td>
+              <td>Password (bcrypt hash)</td>
+            </tr>
+            <tr>
+              <td><code>name</code></td>
+              <td>TEXT</td>
+              <td>Nama admin</td>
+            </tr>
+            <tr>
+              <td><code>created_at</code></td>
+              <td>DATETIME</td>
+              <td>Waktu dibuat</td>
+            </tr>
+          </tbody>
+        </table>
+
+
+        <h3>Tabel: voucher_srp</h3>
+        <p>Menyimpan data voucher dari SRP.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>id</code></td>
+              <td>INTEGER PRIMARY KEY</td>
+              <td>ID voucher</td>
+            </tr>
+            <tr>
+              <td><code>voucher_number</code></td>
+              <td>TEXT UNIQUE</td>
+              <td>Nomor voucher (IGV-xxxx-xxxxx)</td>
+            </tr>
+            <tr>
+              <td><code>store</code></td>
+              <td>TEXT</td>
+              <td>Nama toko</td>
+            </tr>
+            <tr>
+              <td><code>status</code></td>
+              <td>TEXT</td>
+              <td>Status voucher</td>
+            </tr>
+            <tr>
+              <td><code>created_at</code></td>
+              <td>TEXT</td>
+              <td>Tanggal dibuat</td>
+            </tr>
+            <tr>
+              <td><code>is_used</code></td>
+              <td>INTEGER</td>
+              <td>Sudah dipakai (0/1)</td>
+            </tr>
+            <tr>
+              <td><code>used_by_download_id</code></td>
+              <td>INTEGER</td>
+              <td>ID download yang memakai</td>
+            </tr>
+            <tr>
+              <td><code>used_at</code></td>
+              <td>DATETIME</td>
+              <td>Waktu dipakai</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- Section 5: API Endpoints -->
+      <div class="section" id="api">
+        <h2>🔌 5. API Endpoints</h2>
+        
+        <h3>Public Endpoints</h3>
+        
+        <div class="card">
+          <h4>POST /api/check-download</h4>
+          <p>Cek apakah user sudah pernah download.</p>
+          <p><strong>Request Body:</strong> (none - menggunakan IP & User Agent)</p>
+          <p><strong>Response:</strong></p>
+          <pre><code>{
+  "alreadyDownloaded": false,
+  "quotaExceeded": false,
+  "blocked": false
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>POST /api/preview-voucher</h4>
+          <p>Preview voucher yang akan didapat (tanpa mark as used).</p>
+          <p><strong>Request Body:</strong></p>
+          <pre><code>{
+  "phoneNumber": "628123456789"
+}</code></pre>
+          <p><strong>Response:</strong></p>
+          <pre><code>{
+  "voucherNumber": "IGV-0010-PBGUI",
+  "store": "019 - TDN Cibinong",
+  "phoneNumber": "628123456789"
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>POST /api/record-download</h4>
+          <p>Record download dan mark voucher as used.</p>
+          <p><strong>Request Body:</strong></p>
+          <pre><code>{
+  "phoneNumber": "628123456789"
+}</code></pre>
+          <p><strong>Response:</strong></p>
+          <pre><code>{
+  "success": true,
+  "voucherCode": "VCH-ABC12345",
+  "voucherNumber": "IGV-0010-PBGUI",
+  "store": "019 - TDN Cibinong",
+  "downloadId": 1
+}</code></pre>
+        </div>
+
+
+        <div class="card">
+          <h4>GET /api/generate-voucher/:downloadId</h4>
+          <p>Generate voucher image (PNG).</p>
+          <p><strong>Response:</strong> PNG image file</p>
+        </div>
+
+        <h3>Admin Endpoints (Require Authentication)</h3>
+        
+        <div class="card">
+          <h4>POST /api/admin/login</h4>
+          <p>Login admin.</p>
+          <p><strong>Request Body:</strong></p>
+          <pre><code>{
+  "email": "admin@voucher.com",
+  "password": "admin123"
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>GET /api/admin/stats</h4>
+          <p>Get statistik download.</p>
+          <p><strong>Response:</strong></p>
+          <pre><code>{
+  "downloads": [...],
+  "settings": {
+    "total_quota": 100,
+    "used_quota": 5,
+    "allow_redownload": 0
+  }
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>POST /api/admin/block-ip</h4>
+          <p>Block IP address.</p>
+          <p><strong>Request Body:</strong></p>
+          <pre><code>{
+  "ipAddress": "192.168.1.1",
+  "reason": "Spam"
+}</code></pre>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>📝 Catatan:</strong> Untuk daftar lengkap endpoint lainnya, lihat file <code>server.js</code>
+        </div>
+      </div>
+
+
+      <!-- Section 6: Instalasi -->
+      <div class="section" id="instalasi">
+        <h2>🚀 6. Instalasi & Setup</h2>
+        
+        <h3>Prerequisites</h3>
+        <ul>
+          <li>Node.js (v14 atau lebih baru)</li>
+          <li>npm atau yarn</li>
+        </ul>
+
+        <h3>Langkah Instalasi</h3>
+        
+        <div class="card">
+          <h4>1. Clone atau Download Project</h4>
+          <pre><code># Jika menggunakan git
+git clone &lt;repository-url&gt;
+cd voucher-system</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>2. Install Dependencies</h4>
+          <pre><code>npm install</code></pre>
+          <p><strong>Dependencies yang akan terinstall:</strong></p>
+          <ul>
+            <li>express</li>
+            <li>sqlite3</li>
+            <li>body-parser</li>
+            <li>@json2csv/plainjs</li>
+            <li>express-session</li>
+            <li>bcrypt</li>
+            <li>canvas</li>
+            <li>qrcode</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>3. Verifikasi Instalasi</h4>
+          <pre><code>npm list</code></pre>
+        </div>
+      </div>
+
+
+      <!-- Section 7: Cara Menjalankan -->
+      <div class="section" id="menjalankan">
+        <h2>▶️ 7. Cara Menjalankan</h2>
+        
+        <h3>Development Mode</h3>
+        
+        <div class="card">
+          <h4>1. Start Server</h4>
+          <pre><code>node server.js</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>2. Akses Aplikasi</h4>
+          <ul>
+            <li>Halaman User: <code>http://localhost:3000</code></li>
+            <li>Admin Login: <code>http://localhost:3000/admin-login.html</code></li>
+            <li>Admin Panel: <code>http://localhost:3000/admin.html</code></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>3. Login Admin</h4>
+          <ul>
+            <li>Email: <code>admin@voucher.com</code></li>
+            <li>Password: <code>admin123</code></li>
+          </ul>
+        </div>
+
+        <h3>Production Mode</h3>
+        <div class="card">
+          <p>Untuk production, gunakan process manager seperti PM2:</p>
+          <pre><code># Install PM2
+npm install -g pm2
+
+# Start dengan PM2
+pm2 start server.js --name voucher-system
+
+# Auto restart on reboot
+pm2 startup
+pm2 save</code></pre>
+        </div>
+      </div>
+
+
+      <!-- Section 8: Deployment -->
+      <div class="section" id="deployment">
+        <h2>🌐 8. Deployment ke Hosting</h2>
+        
+        <h3>Persiapan untuk Jagoan Hosting</h3>
+        
+        <div class="card">
+          <h4>1. Compress Project</h4>
+          <ul>
+            <li>Zip semua file kecuali <code>node_modules/</code></li>
+            <li>Upload ke hosting via File Manager atau FTP</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>2. Setup Node.js di cPanel</h4>
+          <ul>
+            <li>Buka "Setup Node.js App"</li>
+            <li>Node.js Version: 14.x atau lebih baru</li>
+            <li>Application Mode: Production</li>
+            <li>Application Root: <code>/home/username/public_html/voucher</code></li>
+            <li>Application URL: <code>voucher.domain.com</code></li>
+            <li>Application Startup File: <code>server.js</code></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>3. Install Dependencies</h4>
+          <pre><code>cd /home/username/public_html/voucher
+npm install</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>4. Start Application</h4>
+          <ul>
+            <li>Klik "Start" di Node.js App Manager</li>
+            <li>Atau via terminal: <code>node server.js</code></li>
+          </ul>
+        </div>
+
+        <div class="alert alert-warning">
+          <strong>⚠️ Penting:</strong> Pastikan mode "Allow Redownload" dinonaktifkan sebelum deploy ke production!
+        </div>
+
+
+        <h3>Migrasi ke MySQL (Untuk Hosting)</h3>
+        <div class="alert alert-info">
+          Jika hosting tidak support SQLite dengan baik, migrasi ke MySQL direkomendasikan.
+        </div>
+
+        <div class="card">
+          <h4>1. Install mysql2</h4>
+          <pre><code>npm install mysql2</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>2. Create Database di cPanel</h4>
+          <ul>
+            <li>Buka MySQL Databases</li>
+            <li>Create database: <code>username_voucher</code></li>
+            <li>Create user dan assign ke database</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>3. Update Connection di server.js</h4>
+          <pre><code>const mysql = require('mysql2');
+
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'username_voucheruser',
+  password: 'password',
+  database: 'username_voucher'
+});</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>4. Convert Schema SQLite ke MySQL</h4>
+          <ul>
+            <li>Ubah <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> → <code>INT AUTO_INCREMENT PRIMARY KEY</code></li>
+            <li>Ubah <code>DATETIME DEFAULT CURRENT_TIMESTAMP</code> → <code>TIMESTAMP DEFAULT CURRENT_TIMESTAMP</code></li>
+          </ul>
+        </div>
+      </div>
+
+
+      <!-- Section 9: Troubleshooting -->
+      <div class="section" id="troubleshooting">
+        <h2>🔧 9. Troubleshooting</h2>
+        
+        <div class="card">
+          <h4>❌ Error: "Cannot find module 'canvas'"</h4>
+          <p><strong>Solusi:</strong></p>
+          <pre><code># Windows
+npm install --global --production windows-build-tools
+npm install canvas
+
+# Linux
+sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+npm install canvas
+
+# macOS
+brew install pkg-config cairo pango libpng jpeg giflib librsvg
+npm install canvas</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>❌ Error: "EADDRINUSE: address already in use"</h4>
+          <p>Port 3000 sudah digunakan.</p>
+          <p><strong>Solusi:</strong></p>
+          <pre><code># Windows
+netstat -ano | findstr :3000
+taskkill /PID &lt;PID&gt; /F
+
+# Linux/Mac
+lsof -ti:3000 | xargs kill -9</code></pre>
+        </div>
+
+        <div class="card">
+          <h4>❌ Database Locked</h4>
+          <p><strong>Solusi:</strong></p>
+          <ul>
+            <li>Restart server</li>
+            <li>Pastikan tidak ada multiple instance yang running</li>
+            <li>Gunakan MySQL untuk production</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>❌ Voucher Preview Tidak Muncul</h4>
+          <p><strong>Solusi:</strong></p>
+          <ul>
+            <li>Cek console browser untuk error</li>
+            <li>Pastikan QRCode library loaded</li>
+            <li>Cek API <code>/api/preview-voucher</code> response</li>
+          </ul>
+        </div>
+
+
+        <div class="card">
+          <h4>❌ Admin Tidak Bisa Login</h4>
+          <p><strong>Solusi:</strong></p>
+          <ul>
+            <li>Cek database <code>admin_users</code> table</li>
+            <li>Reset password admin menggunakan bcrypt</li>
+            <li>Pastikan session secret sudah di-set</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>❌ IP Address Selalu 127.0.0.1</h4>
+          <p><strong>Solusi:</strong></p>
+          <ul>
+            <li>Pastikan server accessible dari network</li>
+            <li>Cek <code>x-forwarded-for</code> header</li>
+            <li>Gunakan reverse proxy (nginx) untuk production</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Catatan Penting -->
+      <div class="section">
+        <h2>📝 Catatan Penting</h2>
+        
+        <div class="alert alert-warning">
+          <h3>⚠️ Mode Development</h3>
+          <ul>
+            <li><strong>Allow Redownload</strong> harus diaktifkan untuk testing</li>
+            <li><strong>WAJIB dinonaktifkan</strong> sebelum deploy ke production</li>
+          </ul>
+        </div>
+
+        <div class="alert alert-danger">
+          <h3>🔒 Security</h3>
+          <ul>
+            <li>Ganti password admin default</li>
+            <li>Gunakan HTTPS di production</li>
+            <li>Set session secret yang kuat</li>
+            <li>Validasi semua input user</li>
+          </ul>
+        </div>
+
+        <div class="alert alert-success">
+          <h3>⚡ Performance</h3>
+          <ul>
+            <li>Gunakan MySQL/PostgreSQL untuk production</li>
+            <li>Enable caching jika traffic tinggi</li>
+            <li>Gunakan CDN untuk static files</li>
+            <li>Monitor database size</li>
+          </ul>
+        </div>
+
+        <div class="alert alert-info">
+          <h3>💾 Backup</h3>
+          <ul>
+            <li>Backup database secara berkala</li>
+            <li>Backup file voucher CSV</li>
+            <li>Backup konfigurasi server</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="footer">
+      <p><strong>Sistem Voucher Elektronik</strong></p>
+      <p>Versi 1.0.0 | November 2024</p>
+      <p style="margin-top: 10px; opacity: 0.8;">Dokumentasi ini dapat dicetak ke PDF menggunakan tombol Print di bawah</p>
+    </div>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">
+    🖨️ Print to PDF
+  </button>
+
+  <script>
+    // Smooth scroll for TOC links
+    document.querySelectorAll('.toc a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add copy button to code blocks
+    document.querySelectorAll('pre code').forEach((block) => {
+      const button = document.createElement('button');
+      button.innerText = '📋 Copy';
+      button.style.cssText = 'position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;';
+      
+      const pre = block.parentElement;
+      pre.style.position = 'relative';
+      pre.appendChild(button);
+      
+      button.addEventListener('click', () => {
+        navigator.clipboard.writeText(block.textContent);
+        button.innerText = '✅ Copied!';
+        setTimeout(() => {
+          button.innerText = '📋 Copy';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
