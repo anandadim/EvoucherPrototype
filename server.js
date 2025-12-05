@@ -317,12 +317,12 @@ app.post('/api/check-download', (req, res) => {
 
     // Check quota by voucher type
     let quotaQuery;
-    if (utmSource === 'RT01' || utmSource === 'RT02') {
-      // Check RT vouchers (RTT- prefix)
-      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RTT-%'";
+    if (utmSource !== 'direct') {
+      // Check RT/RW vouchers (RCV- prefix) - for any Kel/RW/RT combination
+      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RCV-%'";
     } else {
-      // Check regular vouchers (SRP- or ADS- prefix)
-      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND (voucher_number LIKE 'SRP-%' OR voucher_number LIKE 'ADS-%')";
+      // Check regular vouchers (ADS- prefix)
+      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'ADS-%'";
     }
 
     db.get(quotaQuery, (err, quota) => {
@@ -334,7 +334,7 @@ app.post('/api/check-download', (req, res) => {
         return res.json({ 
           alreadyDownloaded: true, 
           quotaExceeded: true,
-          voucherType: (utmSource === 'RT01' || utmSource === 'RT02') ? 'RT' : 'regular'
+          voucherType: (utmSource !== 'direct') ? 'RT/RW' : 'regular'
         });
       }
 
@@ -373,13 +373,29 @@ app.post('/api/check-download', (req, res) => {
   const userAgent = req.headers['user-agent'];
   
   // Validate and sanitize UTM source
-  // RT01, RT02 for RT vouchers, direct for regular vouchers
-  const validSources = ['RT01', 'RT02', 'RT03', 'RT04', 'RT05', 'RT06', 'direct'];
+  // Whitelist of valid UTM sources
+  const validUTMSources = [
+    'direct',
+    'KelSukahatiRW09RT01',
+    'KelSukahatiRW09RT02',
+    'KelSukahatiRW09RT03',
+    'KelSukahatiRW09RT04',
+    'KelSukahatiRW09RT05',
+    'KelSukahatiRW09RT06',
+    'KelSukahatiRW09RT07',
+    'KelTengahRW07RT06',
+    'KelTengahRW08RT01',
+    'KelTengahRW08RT02',
+    'KelTengahRW08RT03',
+    'KelTengahRW08RT04',
+    'KelTengahRW08RT05',
+    'KelTengahRW08RT06'
+  ];
   
   // Block invalid UTM sources
-  if (utm_source && !validSources.includes(utm_source)) {
+  if (utm_source && !validUTMSources.includes(utm_source)) {
     return res.status(400).json({ 
-      error: 'Link tidak valid. Silakan gunakan link yang diberikan oleh admin atau akses tanpa parameter.'
+      error: 'Link tidak valid. Silakan gunakan link yang diberikan oleh RT/RW atau akses langsung tanpa parameter.'
     });
   }
   
@@ -401,12 +417,12 @@ app.post('/api/check-download', (req, res) => {
 
     // Check quota by voucher type
     let quotaQuery;
-    if (utmSource === 'RT01' || utmSource === 'RT02') {
-      // Check RT vouchers (RTT- prefix)
-      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RTT-%'";
+    if (utmSource !== 'direct') {
+      // Check RT/RW vouchers (RCV- prefix) - for any Kel/RW/RT combination
+      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RCV-%'";
     } else {
-      // Check regular vouchers (SRP- or ADS- prefix)
-      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND (voucher_number LIKE 'SRP-%' OR voucher_number LIKE 'ADS-%')";
+      // Check regular vouchers (ADS- prefix)
+      quotaQuery = "SELECT COUNT(*) as available FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'ADS-%'";
     }
 
     db.get(quotaQuery, (err, quota) => {
@@ -415,13 +431,13 @@ app.post('/api/check-download', (req, res) => {
       }
 
       if (quota.available === 0) {
-        const errorMessage = (utmSource === 'RT01' || utmSource === 'RT02')
-          ? 'Voucher RT sudah mencapai batas kuota. Silakan hubungi administrator.'
+        const errorMessage = (utmSource !== 'direct')
+          ? 'Voucher RT/RW sudah mencapai batas kuota. Silakan hubungi administrator.'
           : 'Kuota voucher sudah habis. Silakan hubungi administrator.';
         
         return res.status(403).json({ 
           error: errorMessage,
-          voucherType: (utmSource === 'RT01' || utmSource === 'RT02') ? 'RT' : 'regular'
+          voucherType: (utmSource !== 'direct') ? 'RT/RW' : 'regular'
         });
       }
 
@@ -461,12 +477,12 @@ app.post('/api/check-download', (req, res) => {
 
           // Get voucher by type (FIFO - First In First Out)
           let voucherQuery;
-          if (utmSource === 'RT01' || utmSource === 'RT02') {
-            // Get RT voucher (RTT- prefix)
-            voucherQuery = "SELECT * FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RTT-%' ORDER BY id ASC LIMIT 1";
+          if (utmSource !== 'direct') {
+            // Get RT/RW voucher (RCV- prefix) - for any Kel/RW/RT combination
+            voucherQuery = "SELECT * FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'RCV-%' ORDER BY id ASC LIMIT 1";
           } else {
-            // Get regular voucher (SRP- or ADS- prefix)
-            voucherQuery = "SELECT * FROM voucher_srp WHERE is_used = 0 AND (voucher_number LIKE 'SRP-%' OR voucher_number LIKE 'ADS-%') ORDER BY id ASC LIMIT 1";
+            // Get regular voucher (ADS- prefix)
+            voucherQuery = "SELECT * FROM voucher_srp WHERE is_used = 0 AND voucher_number LIKE 'ADS-%' ORDER BY id ASC LIMIT 1";
           }
 
           db.get(voucherQuery, (err, voucher) => {
@@ -475,13 +491,13 @@ app.post('/api/check-download', (req, res) => {
             }
 
             if (!voucher) {
-              const errorMessage = (utmSource === 'RT01' || utmSource === 'RT02')
-                ? 'Voucher RT habis. Silakan hubungi administrator.'
+              const errorMessage = (utmSource !== 'direct')
+                ? 'Voucher RT/RW habis. Silakan hubungi administrator.'
                 : 'Voucher regular habis. Silakan hubungi administrator.';
               
               return res.status(403).json({ 
                 error: errorMessage,
-                voucherType: (utmSource === 'RT01' || utmSource === 'RT02') ? 'RT' : 'regular'
+                voucherType: (utmSource !== 'direct') ? 'RT/RW' : 'regular'
               });
             }
 
@@ -1215,28 +1231,55 @@ app.delete('/api/admin/blocked-ip/:id', requireAuth, (req, res) => {
   });
 });
 
-// Soft delete download by ID
+// Soft delete download by ID + unreserve voucher
 app.delete('/api/delete/:id', requireAuth, (req, res) => {
   const { id } = req.params;
   const adminId = req.session.adminId;
   const ipAddress = getClientIp(req);
 
-  // Soft delete: Mark as deleted instead of removing
-  db.run('UPDATE downloads SET is_deleted = 1 WHERE id = ?', [id], function (err) {
+  // First, get the download info to find associated voucher
+  db.get('SELECT * FROM downloads WHERE id = ?', [id], (err, download) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
     }
-    if (this.changes === 0) {
+    if (!download) {
       return res.status(404).json({ error: 'Record not found' });
     }
 
-    // Log action
-    db.run(
-      'INSERT INTO admin_logs (admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
-      [adminId, 'SOFT_DELETE_RECORD', `Soft deleted download record ID: ${id}`, ipAddress]
-    );
+    // Soft delete: Mark as deleted instead of removing
+    db.run('UPDATE downloads SET is_deleted = 1 WHERE id = ?', [id], function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
 
-    res.json({ success: true, message: 'Record deleted' });
+      // Unreserve the voucher if it was used by this download
+      db.run(
+        'UPDATE voucher_srp SET is_used = 0, used_by_download_id = NULL, used_at = NULL WHERE used_by_download_id = ?',
+        [id],
+        function (err) {
+          if (err) {
+            console.error('Error unreserving voucher:', err);
+          }
+          
+          const voucherUnreserved = this.changes > 0;
+          const logDetails = voucherUnreserved 
+            ? `Soft deleted download ID: ${id}, unreserved voucher for phone: ${download.phone_number}`
+            : `Soft deleted download ID: ${id} (no voucher to unreserve)`;
+
+          // Log action
+          db.run(
+            'INSERT INTO admin_logs (admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+            [adminId, 'SOFT_DELETE_AND_UNRESERVE', logDetails, ipAddress]
+          );
+
+          res.json({ 
+            success: true, 
+            message: 'Record deleted and voucher unreserved',
+            voucherUnreserved: voucherUnreserved
+          });
+        }
+      );
+    });
   });
 });
 
@@ -1332,8 +1375,8 @@ app.get('/api/generate-voucher/:downloadId', async (req, res) => {
         
         // Determine background based on UTM source
         let backgroundFilename = 'homepage-2.png'; // Default for regular/direct
-        if (download.utm_source === 'RT01' || download.utm_source === 'RT02') {
-          backgroundFilename = 'homepage-2-rt.png'; // RT voucher background
+        if (download.utm_source !== 'direct') {
+          backgroundFilename = 'homepage-2-rt.jpg'; // RT/RW voucher background
         }
         
         const backgroundPath = path.join(__dirname, 'public/images', backgroundFilename);
@@ -1350,143 +1393,108 @@ app.get('/api/generate-voucher/:downloadId', async (req, res) => {
           }
         }
         
-        // Load image from file
+        // Load image from file synchronously
         backgroundImage.src = fs.readFileSync(finalBackgroundPath);
         
-        backgroundImage.onload = async () => {
-          // Draw background image (no stretch - ukuran asli)
-          ctx.drawImage(backgroundImage, 0, 0, 900, 1600);
+        // Draw background image (no stretch - ukuran asli)
+        ctx.drawImage(backgroundImage, 0, 0, 900, 1600);
 
-          // Generate QR Code
-          const qrData = download.voucher_number || download.voucher_code;
-          const qrCodeDataURL = await QRCode.toDataURL(qrData, { 
-            width: 180, 
-            margin: 1,
-            color: {
-              dark: '#000000',
-              light: '#ffffff'
-            }
-          });
+        // HIDDEN - QR Code generation and drawing removed (not needed anymore)
+        // All voucher details (QR, code, phone, date) are hidden from download image
+            // const qrX = 80;
+            // const qrY = baseY;
+            // const qrSize = 360; // Scale up dari 240 (1.5x)
+            
+            // // Red box for QR Code
+            // ctx.fillStyle = '#d32f2f';
+            // ctx.fillRect(qrX, qrY, qrSize, qrSize);
+            
+            // // QR Code with white padding
+            // const qrPadding = 30;
+            // ctx.fillStyle = '#ffffff';
+            // ctx.fillRect(qrX + qrPadding, qrY + qrPadding, qrSize - (qrPadding * 2), qrSize - (qrPadding * 2));
+            // ctx.drawImage(qrImage, qrX + qrPadding, qrY + qrPadding, qrSize - (qrPadding * 2), qrSize - (qrPadding * 2));
 
-          // Load and draw QR code
-          const qrImage = new Image();
+            // // Voucher Info - Sebelah kanan QR Code (horizontal layout)
+            // const infoX = qrX + qrSize + 50; // 50px gap dari QR Code
+            // const infoStartY = baseY + 30;
+            
+            // // Format phone number first
+            // const phone = download.phone_number;
+            // let displayPhone = phone;
+            // if (phone.startsWith('628')) {
+            //   const withoutPrefix = '0' + phone.substring(2);
+            //   if (withoutPrefix.length >= 11) {
+            //     displayPhone = withoutPrefix.substring(0, 4) + '-' + 
+            //                  withoutPrefix.substring(4, 7) + '-' + 
+            //                  withoutPrefix.substring(7);
+            //   } else {
+            //     displayPhone = withoutPrefix;
+            //   }
+            // }
+
+            // // Label "Kode Voucher" (scale up font)
+            // ctx.textAlign = 'left';
+            // ctx.fillStyle = '#333333';
+            // ctx.font = 'bold 30px Arial';
+
+            // // Display voucher_number as text (bukan dalam tombol)
+            // ctx.fillStyle = '#333333';
+            // ctx.font = 'bold 24px Arial';
+            // ctx.fillText(download.voucher_number || 'N/A', infoX, infoStartY + 35);
+
+            // // Phone Number dalam tombol merah (PERBAIKAN)
+            // const voucherBtnY = infoStartY + 70;
+            // const voucherBtnWidth = 390; // Scale up dari 260
+            // const voucherBtnHeight = 75; // Scale up dari 50
+            
+            // ctx.fillStyle = '#d32f2f';
+            // ctx.beginPath();
+            // ctx.roundRect(infoX, voucherBtnY, voucherBtnWidth, voucherBtnHeight, 37);
+            // ctx.fill();
+            
+            // ctx.fillStyle = '#ffffff';
+            // ctx.font = 'bold 33px Arial'; // Scale up dari 22px
+            // ctx.textAlign = 'center';
+            // ctx.fillText(displayPhone, infoX + (voucherBtnWidth / 2), voucherBtnY + 48);
+
+            // // Label "Tanggal Download" (scale up)
+            // const dateLabelY = voucherBtnY + voucherBtnHeight + 40;
+            // ctx.textAlign = 'left';
+            // ctx.fillStyle = '#333333';
+            // ctx.font = 'bold 27px Arial';
+
+            // // Tanggal Download (di bawah label)
+            // const downloadDate = new Date(download.download_time);
+            // const dateStr = downloadDate.toLocaleDateString('id-ID', {
+            //   year: 'numeric',
+            //   month: 'long', 
+            //   day: 'numeric',
+            //   hour: '2-digit',
+            //   minute: '2-digit'
+            // });
+            
+            // const dateY = dateLabelY + 35;
+            // ctx.fillStyle = '#666666';
+            // ctx.font = '24px Arial'; // Scale up dari 16px
+            // ctx.textAlign = 'left';
+            // ctx.fillText(dateStr, infoX, dateY);
+
+        // Generate filename with voucher_number-phone_number-download_time
+        const fileDate = new Date(download.download_time);
+        const fileDateStr = fileDate.getFullYear() + 
+                       String(fileDate.getMonth() + 1).padStart(2, '0') + 
+                       String(fileDate.getDate()).padStart(2, '0') + '_' +
+                       String(fileDate.getHours()).padStart(2, '0') + 
+                       String(fileDate.getMinutes()).padStart(2, '0') + 
+                       String(fileDate.getSeconds()).padStart(2, '0');
         
-          qrImage.onload = () => {
-            // Positioning untuk canvas 900x1600 (scale up dari 600x900)
-            const baseY = 1100; // Posisi setelah garis putus-putus (scale up)
-            
-            // QR Code - Kotak merah besar di kiri
-            const qrX = 80;
-            const qrY = baseY;
-            const qrSize = 360; // Scale up dari 240 (1.5x)
-            
-            // Red box for QR Code
-            ctx.fillStyle = '#d32f2f';
-            ctx.fillRect(qrX, qrY, qrSize, qrSize);
-            
-            // QR Code with white padding
-            const qrPadding = 30;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(qrX + qrPadding, qrY + qrPadding, qrSize - (qrPadding * 2), qrSize - (qrPadding * 2));
-            ctx.drawImage(qrImage, qrX + qrPadding, qrY + qrPadding, qrSize - (qrPadding * 2), qrSize - (qrPadding * 2));
-
-            // Voucher Info - Sebelah kanan QR Code (horizontal layout)
-            const infoX = qrX + qrSize + 50; // 50px gap dari QR Code
-            const infoStartY = baseY + 30;
-            
-            // Format phone number first
-            const phone = download.phone_number;
-            let displayPhone = phone;
-            if (phone.startsWith('628')) {
-              const withoutPrefix = '0' + phone.substring(2);
-              if (withoutPrefix.length >= 11) {
-                displayPhone = withoutPrefix.substring(0, 4) + '-' + 
-                             withoutPrefix.substring(4, 7) + '-' + 
-                             withoutPrefix.substring(7);
-              } else {
-                displayPhone = withoutPrefix;
-              }
-            }
-
-            // Label "Kode Voucher" (scale up font)
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#333333';
-            ctx.font = 'bold 30px Arial';
-
-            // Display voucher_number as text (bukan dalam tombol)
-            ctx.fillStyle = '#333333';
-            ctx.font = 'bold 24px Arial';
-            ctx.fillText(download.voucher_number || 'N/A', infoX, infoStartY + 35);
-
-            // Phone Number dalam tombol merah (PERBAIKAN)
-            const voucherBtnY = infoStartY + 70;
-            const voucherBtnWidth = 390; // Scale up dari 260
-            const voucherBtnHeight = 75; // Scale up dari 50
-            
-            ctx.fillStyle = '#d32f2f';
-            ctx.beginPath();
-            ctx.roundRect(infoX, voucherBtnY, voucherBtnWidth, voucherBtnHeight, 37);
-            ctx.fill();
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 33px Arial'; // Scale up dari 22px
-            ctx.textAlign = 'center';
-            ctx.fillText(displayPhone, infoX + (voucherBtnWidth / 2), voucherBtnY + 48);
-
-            // Label "Tanggal Download" (scale up)
-            const dateLabelY = voucherBtnY + voucherBtnHeight + 40;
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#333333';
-            ctx.font = 'bold 27px Arial';
-
-            // Tanggal Download (di bawah label)
-            const downloadDate = new Date(download.download_time);
-            const dateStr = downloadDate.toLocaleDateString('id-ID', {
-              year: 'numeric',
-              month: 'long', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            
-            const dateY = dateLabelY + 35;
-            ctx.fillStyle = '#666666';
-            ctx.font = '24px Arial'; // Scale up dari 16px
-            ctx.textAlign = 'left';
-            ctx.fillText(dateStr, infoX, dateY);
-
-          // Generate filename with voucher_number-phone_number-download_time
-          const fileDate = new Date(download.download_time);
-          const fileDateStr = fileDate.getFullYear() + 
-                         String(fileDate.getMonth() + 1).padStart(2, '0') + 
-                         String(fileDate.getDate()).padStart(2, '0') + '_' +
-                         String(fileDate.getHours()).padStart(2, '0') + 
-                         String(fileDate.getMinutes()).padStart(2, '0') + 
-                         String(fileDate.getSeconds()).padStart(2, '0');
-          
-          const filename = `voucher-${download.voucher_number || 'N/A'}-${download.phone_number}-${fileDateStr}.png`;
-          
-          // Send PNG
-          res.setHeader('Content-Type', 'image/png');
-          res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-          canvas.createPNGStream().pipe(res);
-        };
+        const filename = `voucher-${download.voucher_number || 'N/A'}-${download.phone_number}-${fileDateStr}.png`;
         
-        qrImage.onerror = (err) => {
-          console.error('Error loading QR code:', err);
-          res.status(500).json({ error: 'Failed to generate QR code' });
-        };
-        
-            qrImage.src = qrCodeDataURL;
-          };
-          
-          backgroundImage.onerror = (err) => {
-            console.error('Error loading background image:', err);
-            res.status(500).json({ error: 'Failed to load background image' });
-          };
-          
-          // Load background image
-          backgroundImage.src = fs.readFileSync(backgroundPath);
+        // Send PNG (just background image without any voucher details)
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        canvas.createPNGStream().pipe(res);
         
       } catch (error) {
         console.error('Error generating voucher:', error);
@@ -1567,52 +1575,51 @@ async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphon
     console.log(`Generating voucher with template: ${templateName}`);
     console.log(`Using coordinates:`, coords);
 
-    // Generate QR Code
-    const qrCodeDataUrl = await QRCode.toDataURL(voucherCode, {
-      width: 240,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff'
-      }
-    });
+    // HIDDEN - QR Code generation and drawing removed (not needed anymore)
+    // const qrCodeDataUrl = await QRCode.toDataURL(voucherCode, {
+    //   width: 240,
+    //   margin: 1,
+    //   color: {
+    //     dark: '#000000',
+    //     light: '#ffffff'
+    //   }
+    // });
 
-    const qrImage = new Image();
-    qrImage.src = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+    // const qrImage = new Image();
+    // qrImage.src = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
 
-    // Overlay QR Code
-    ctx.drawImage(qrImage, coords.qr.x, coords.qr.y, coords.qr.size, coords.qr.size);
+    // All voucher details (QR, code, phone, date) are hidden from blast image
 
-    // Overlay Voucher Code
-    ctx.fillStyle = coords.voucherCode.color;
-    ctx.font = coords.voucherCode.font;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(voucherCode, coords.voucherCode.x, coords.voucherCode.y);
+    // // Overlay Voucher Code
+    // ctx.fillStyle = coords.voucherCode.color;
+    // ctx.font = coords.voucherCode.font;
+    // ctx.textAlign = 'center';
+    // ctx.textBaseline = 'middle';
+    // ctx.fillText(voucherCode, coords.voucherCode.x, coords.voucherCode.y);
 
-    // Overlay Tanggal Blasting
-    ctx.fillStyle = coords.tanggal.color;
-    ctx.font = coords.tanggal.font;
-    ctx.textAlign = 'center';
-    ctx.fillText(tanggalBlasting, coords.tanggal.x, coords.tanggal.y);
+    // // Overlay Tanggal Blasting
+    // ctx.fillStyle = coords.tanggal.color;
+    // ctx.font = coords.tanggal.font;
+    // ctx.textAlign = 'center';
+    // ctx.fillText(tanggalBlasting, coords.tanggal.x, coords.tanggal.y);
 
-    // Overlay No Handphone (format: 0812-3456-7890)
-    ctx.fillStyle = coords.phone.color;
-    ctx.font = coords.phone.font;
-    ctx.textAlign = 'center';
+    // // Overlay No Handphone (format: 0812-3456-7890)
+    // ctx.fillStyle = coords.phone.color;
+    // ctx.font = coords.phone.font;
+    // ctx.textAlign = 'center';
     
-    // Format nomor HP: 628xxx -> 08xxx dengan dash
-    let formattedPhone = noHandphone;
-    if (noHandphone.startsWith('62')) {
-      formattedPhone = '0' + noHandphone.substring(2);
-    }
-    // Add dashes: 08123456789 -> 0812-3456-7890
-    if (formattedPhone.length >= 11) {
-      formattedPhone = formattedPhone.substring(0, 4) + '-' + 
-                       formattedPhone.substring(4, 8) + '-' + 
-                       formattedPhone.substring(8);
-    }
-    ctx.fillText(formattedPhone, coords.phone.x, coords.phone.y);
+    // // Format nomor HP: 628xxx -> 08xxx dengan dash
+    // let formattedPhone = noHandphone;
+    // if (noHandphone.startsWith('62')) {
+    //   formattedPhone = '0' + noHandphone.substring(2);
+    // }
+    // // Add dashes: 08123456789 -> 0812-3456-7890
+    // if (formattedPhone.length >= 11) {
+    //   formattedPhone = formattedPhone.substring(0, 4) + '-' + 
+    //                    formattedPhone.substring(4, 8) + '-' + 
+    //                    formattedPhone.substring(8);
+    // }
+    // ctx.fillText(formattedPhone, coords.phone.x, coords.phone.y);
 
     // Save image as JPEG
     const buffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
