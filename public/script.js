@@ -16,8 +16,20 @@ let isDownloaded = false;
     
     // Validate UTM source (must match backend validation)
     // Whitelist of valid UTM sources
-    const validUTMSources = [
-      'direct',
+    // Define UTM source groups
+    const pondokKacangSources = [
+      'KelPondokKacangRW01RT04',
+      'KelPondokKacangRW01RT02',
+      'KelPondokKacangRW09RT03',
+      'KelPondokKacangRW09RT01',
+      'KelPondokKacangRW07RT15',
+      'KelPondokKacangRW07RT05',
+      'KelPondokKacangRW07RT07',
+      'KelPondokKacangRW07RT04',
+      'KelPondokKacangRW07RT06'
+    ];
+
+    const sukahatiSources = [
       'KelSukahatiRW09RT01',
       'KelSukahatiRW09RT02',
       'KelSukahatiRW09RT03',
@@ -25,6 +37,10 @@ let isDownloaded = false;
       'KelSukahatiRW09RT05',
       'KelSukahatiRW09RT06',
       'KelSukahatiRW09RT07',
+      'KelSukahatiRW09RT08'
+    ];
+
+    const tengahSources = [
       'KelTengahRW07RT06',
       'KelTengahRW08RT01',
       'KelTengahRW08RT02',
@@ -32,6 +48,14 @@ let isDownloaded = false;
       'KelTengahRW08RT04',
       'KelTengahRW08RT05',
       'KelTengahRW08RT06'
+    ];
+
+    // Combine all valid sources
+    const validUTMSources = [
+      'direct',
+      ...pondokKacangSources,
+      ...sukahatiSources,
+      ...tengahSources
     ];
     
     if (!validUTMSources.includes(utmSource)) {
@@ -49,8 +73,19 @@ let isDownloaded = false;
     }
     
     // Swap background image based on UTM source
-    if (utmSource !== 'direct') {
-      // RT/RW Homepage - use RT background
+    if (pondokKacangSources.includes(utmSource)) {
+      // Pondok Kacang Homepage
+      backgroundImage.src = 'images/homepage-pondokkacang.jpg';
+      backgroundImage.alt = 'Promo Khusus Warga Pondok Kacang';
+      console.log('Loading Pondok Kacang homepage background');
+      
+      // Add class for custom form positioning
+      const formOverlay = document.getElementById('formOverlay');
+      if (formOverlay) {
+        formOverlay.classList.add('pondok-kacang-form');
+      }
+    } else if (sukahatiSources.includes(utmSource) || tengahSources.includes(utmSource)) {
+      // Sukahati/Tengah RT/RW Homepage
       backgroundImage.src = 'images/homepage-rt.jpg';
       backgroundImage.alt = 'Promo Khusus Warga RT/RW';
       console.log('Loading RT/RW homepage background');
@@ -220,7 +255,25 @@ downloadBtn.addEventListener('click', async function() {
       console.log('Current UTM Source:', currentUtmSource);
       console.log('Is RT/RW user?', (currentUtmSource !== 'direct'));
       
-      if (currentUtmSource !== 'direct') {
+      // Define groups again for overlay (or move to global scope)
+      const pondokKacangSources = [
+        'KelPondokKacangRW01RT04', 'KelPondokKacangRW01RT02', 'KelPondokKacangRW09RT03',
+        'KelPondokKacangRW09RT01', 'KelPondokKacangRW07RT15', 'KelPondokKacangRW07RT05',
+        'KelPondokKacangRW07RT07', 'KelPondokKacangRW07RT04', 'KelPondokKacangRW07RT06'
+      ];
+      const sukahatiSources = [
+        'KelSukahatiRW09RT01', 'KelSukahatiRW09RT02', 'KelSukahatiRW09RT03', 'KelSukahatiRW09RT04',
+        'KelSukahatiRW09RT05', 'KelSukahatiRW09RT06', 'KelSukahatiRW09RT07', 'KelSukahatiRW09RT08'
+      ];
+      const tengahSources = [
+        'KelTengahRW07RT06', 'KelTengahRW08RT01', 'KelTengahRW08RT02', 'KelTengahRW08RT03',
+        'KelTengahRW08RT04', 'KelTengahRW08RT05', 'KelTengahRW08RT06'
+      ];
+
+      if (pondokKacangSources.includes(currentUtmSource)) {
+        backgroundImage.src = 'images/homepage-2-pondokkacang.jpg';
+        console.log('Loading Pondok Kacang voucher background:', backgroundImage.src);
+      } else if (sukahatiSources.includes(currentUtmSource) || tengahSources.includes(currentUtmSource)) {
         backgroundImage.src = 'images/homepage-2-rt.jpg';
         console.log('Loading RT/RW voucher background:', backgroundImage.src);
       } else {
@@ -231,9 +284,9 @@ downloadBtn.addEventListener('click', async function() {
       console.log('Final background image:', backgroundImage.src);
       console.log('================================');
       
-      // Hide form only (don't show voucher overlay)
+      // Hide form and show voucher overlay with phone number only
       formOverlay.style.display = 'none';
-      // voucherOverlay.style.display = 'block';  // HIDDEN - keep overlay hidden
+      voucherOverlay.style.display = 'block';
       
       // Generate QR Code - HIDDEN (commented out)
       // const qrCodeDiv = document.getElementById('qrCode');
@@ -248,9 +301,9 @@ downloadBtn.addEventListener('click', async function() {
       //   correctLevel: QRCode.CorrectLevel.H
       // });
       
-      // Display voucher info - HIDDEN (commented out)
+      // Display phone number only (hide voucher code and date)
       // document.getElementById('voucherNumber').textContent = data.voucherNumber || 'N/A';
-      // document.getElementById('voucherPhone').textContent = formatPhoneDisplay(phoneNumber);
+      document.getElementById('voucherPhone').textContent = formatPhoneDisplay(phoneNumber);
       // document.getElementById('voucherDate').textContent = formatDate(new Date());
       
       // Download voucher image
