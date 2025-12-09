@@ -47,6 +47,11 @@ body {
   padding: 15px;
 }
 
+/* Conditional positioning for Pondok Kacang */
+.form-overlay.pondok-kacang-form {
+  top: 72%; /* Adjust: lebih besar = lebih ke bawah */
+}
+
 .form-group {
   margin-bottom: 4px;
 }
@@ -154,6 +159,7 @@ body {
 
 .voucher-details {
   flex: 1;
+  text-align: center;
 }
 
 .voucher-number {
@@ -186,6 +192,11 @@ body {
     top: 62%;
     width: 85%;
     padding: 14px;
+  }
+
+  /* Pondok Kacang positioning for tablet */
+  .form-overlay.pondok-kacang-form {
+    top: 68%; /* Adjust untuk tablet */
   }
 
   .form-label {
@@ -230,6 +241,11 @@ body {
     width: 75%;
     max-width: 280px;
     padding: 8px;
+  }
+
+  /* Pondok Kacang positioning for mobile */
+  .form-overlay.pondok-kacang-form {
+    top: 70%; /* Adjust untuk mobile */
   }
 
   .form-label {
