@@ -1,0 +1,118 @@
+<!-- Analytics Page -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 25px;">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">📅 Date Range Filter</h2>
+  <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
+    <div style="flex: 1; min-width: 200px;">
+      <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">From Date</label>
+      <input type="date" id="dateFrom" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+    </div>
+    <div style="flex: 1; min-width: 200px;">
+      <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">To Date</label>
+      <input type="date" id="dateTo" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+    </div>
+    <button onclick="loadAnalyticsData()" style="padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      Apply Filter
+    </button>
+    <button onclick="clearDateFilter()" style="padding: 12px 30px; background: #9e9e9e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      Clear
+    </button>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">👁️</div>
+      <div>
+        <h3 id="totalViews" style="font-size: 32px; font-weight: 700; color: #667eea; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Total Views</p>
+      </div>
+    </div>
+  </div>
+  
+  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">⬇️</div>
+      <div>
+        <h3 id="totalDownloads" style="font-size: 32px; font-weight: 700; color: #4caf50; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Total Downloads</p>
+      </div>
+    </div>
+  </div>
+  
+  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">📊</div>
+      <div>
+        <h3 id="conversionRate" style="font-size: 32px; font-weight: 700; color: #ff9800; margin: 0;">0%</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Conversion Rate</p>
+      </div>
+    </div>
+  </div>
+  
+  <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">👥</div>
+      <div>
+        <h3 id="uniqueVisitors" style="font-size: 32px; font-weight: 700; color: #9c27b0; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Unique Visitors</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Analytics Table -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0; font-size: 20px; color: #333;">📈 Analytics by UTM Source</h2>
+    <button onclick="exportAnalytics()" style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      📥 Export CSV
+    </button>
+  </div>
+  
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">UTM Source</th>
+          <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Total Views</th>
+          <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Downloads</th>
+          <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Views Only</th>
+          <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Conversion Rate</th>
+        </tr>
+      </thead>
+      <tbody id="analyticsTableBody">
+        <tr>
+          <td colspan="5" style="padding: 40px; text-align: center; color: #999;">Loading analytics data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function clearDateFilter() {
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  if (typeof loadAnalyticsData === 'function') {
+    loadAnalyticsData();
+  }
+}
+
+function exportAnalytics() {
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  
+  let url = '/api/admin/export-analytics-utm';
+  const params = new URLSearchParams();
+  if (dateFrom) params.append('from', dateFrom);
+  if (dateTo) params.append('to', dateTo);
+  
+  if (params.toString()) {
+    url += '?' + params.toString();
+  }
+  
+  window.location.href = url;
+}
+</script>

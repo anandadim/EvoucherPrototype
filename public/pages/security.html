@@ -1,0 +1,169 @@
+<!-- Security & IP Blocking Page -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 25px;">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">🚫 Block IP Address</h2>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+    <div>
+      <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">IP Address</label>
+      <input type="text" id="ipAddressInput" placeholder="192.168.1.1" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+    </div>
+    <div>
+      <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">Reason (Optional)</label>
+      <input type="text" id="blockReasonInput" placeholder="Spam, Abuse, etc." style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+    </div>
+    <button onclick="blockIpPage()" style="padding: 12px 30px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      🚫 Block IP
+    </button>
+  </div>
+</div>
+
+<!-- Blocked IPs List -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">📋 Blocked IP Addresses</h2>
+  
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">IP Address</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Reason</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Blocked By</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Blocked At</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">Status</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="blockedIpsTableBody">
+        <tr>
+          <td colspan="6" style="padding: 40px; text-align: center; color: #999;">Loading blocked IPs...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+async function loadBlockedIpsPage() {
+  try {
+    const response = await fetch('/api/admin/blocked-ips');
+    const data = await response.json();
+
+    const tbody = document.getElementById('blockedIpsTableBody');
+
+    if (!data.blockedIps || data.blockedIps.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding: 40px; text-align: center; color: #999;">Tidak ada IP yang diblokir</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.blockedIps.map(ip => {
+      const statusBadge = ip.is_active
+        ? '<span style="background: #f44336; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600;">🔴 Blocked</span>'
+        : '<span style="background: #4caf50; color: white; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600;">🟢 Active</span>';
+      
+      const actionBtn = ip.is_active
+        ? `<button onclick="unblockIpPage('${ip.ip_address}')" style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Unblock</button>`
+        : `<button onclick="blockIpAgainPage('${ip.ip_address}')" style="padding: 8px 16px; background: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">Block Again</button>`;
+
+      return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">${ip.ip_address}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${ip.reason || '-'}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${ip.blocked_by_name}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${new Date(ip.blocked_at).toLocaleString('id-ID')}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center;">${statusBadge}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center;">${actionBtn}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error loading blocked IPs:', error);
+    document.getElementById('blockedIpsTableBody').innerHTML = 
+      '<tr><td colspan="6" style="padding: 40px; text-align: center; color: #f44336;">Error loading data</td></tr>';
+  }
+}
+
+async function blockIpPage() {
+  const ipAddress = document.getElementById('ipAddressInput').value.trim();
+  const reason = document.getElementById('blockReasonInput').value.trim();
+
+  if (!ipAddress) {
+    alert('IP address harus diisi');
+    return;
+  }
+
+  const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipPattern.test(ipAddress)) {
+    alert('Format IP address tidak valid');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/block-ip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ipAddress, reason }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('✓ IP address berhasil diblokir!');
+      document.getElementById('ipAddressInput').value = '';
+      document.getElementById('blockReasonInput').value = '';
+      loadBlockedIpsPage();
+    } else {
+      alert('Error: ' + (data.error || 'Gagal memblokir IP'));
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+async function unblockIpPage(ipAddress) {
+  if (!confirm(`Unblock IP: ${ipAddress}?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/unblock-ip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ipAddress }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('✓ IP address berhasil di-unblock!');
+      loadBlockedIpsPage();
+    } else {
+      alert('Error: ' + (data.error || 'Gagal unblock IP'));
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+async function blockIpAgainPage(ipAddress) {
+  try {
+    const response = await fetch('/api/admin/block-ip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ipAddress, reason: 'Blocked again' }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('✓ IP address berhasil diblokir kembali!');
+      loadBlockedIpsPage();
+    } else {
+      alert('Error: ' + (data.error || 'Gagal memblokir IP'));
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+loadBlockedIpsPage();
+</script>

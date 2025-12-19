@@ -1,0 +1,60 @@
+<!-- Dashboard Page -->
+<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+  <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">📊</div>
+      <div>
+        <h3 id="totalQuota" style="font-size: 32px; font-weight: 700; color: #667eea; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Total Kuota</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">✅</div>
+      <div>
+        <h3 id="usedQuota" style="font-size: 32px; font-weight: 700; color: #4caf50; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Download</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">📦</div>
+      <div>
+        <h3 id="remainingQuota" style="font-size: 32px; font-weight: 700; color: #ff9800; margin: 0;">0</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Tersisa</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div style="font-size: 40px;">📈</div>
+      <div>
+        <h3 id="percentageUsed" style="font-size: 32px; font-weight: 700; color: #f44336; margin: 0;">0%</h3>
+        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Persentase</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">Quick Actions</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+    <button onclick="navigateToPage('analytics')" style="padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      📈 View Analytics
+    </button>
+    <button onclick="navigateToPage('vouchers')" style="padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      🎫 Manage Vouchers
+    </button>
+    <button onclick="navigateToPage('bulk-generate')" style="padding: 15px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      🖼️ Bulk Generate
+    </button>
+    <button onclick="navigateToPage('downloads')" style="padding: 15px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      📋 View Downloads
+    </button>
+  </div>
+</div>

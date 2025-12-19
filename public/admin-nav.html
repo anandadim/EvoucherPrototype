@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Voucher System</title>
+  <link rel="icon" type="image/png" href="images/logo-tdn.ico"/>
+  <link rel="stylesheet" href="admin-style.css">
+  <link rel="stylesheet" href="admin-nav-style.css">
+</head>
+<body>
+  <!-- Navigation Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>🎫 Admin Panel</h2>
+      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    </div>
+    
+    <div class="sidebar-user">
+      <div class="user-avatar">👤</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarAdminName">Admin</div>
+        <div class="user-role" id="sidebarAdminRole">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="menu-item active" data-page="dashboard">
+        <span class="menu-icon">📊</span>
+        <span class="menu-text">Dashboard</span>
+      </li>
+      <li class="menu-item" data-page="analytics">
+        <span class="menu-icon">📈</span>
+        <span class="menu-text">Analytics</span>
+      </li>
+      <li class="menu-item" data-page="vouchers">
+        <span class="menu-icon">🎫</span>
+        <span class="menu-text">Vouchers</span>
+      </li>
+      <li class="menu-item" data-page="bulk-generate">
+        <span class="menu-icon">🖼️</span>
+        <span class="menu-text">Bulk Generate</span>
+      </li>
+      <li class="menu-item" data-page="downloads">
+        <span class="menu-icon">📋</span>
+        <span class="menu-text">Downloads</span>
+      </li>
+      <li class="menu-item" data-page="security">
+        <span class="menu-icon">🔒</span>
+        <span class="menu-text">Security</span>
+      </li>
+      <li class="menu-item" data-page="logs">
+        <span class="menu-icon">📝</span>
+        <span class="menu-text">Activity Logs</span>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="sidebarLogout">
+        <span>🚪</span>
+        <span>Logout</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <div class="main-content" id="mainContent">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="mobile-toggle" id="mobileToggle">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="header-right">
+        <a href="index.html" class="btn-link">← Halaman Utama</a>
+      </div>
+    </header>
+
+    <!-- Content Container (Dynamic) -->
+    <div class="content-container" id="contentContainer">
+      <!-- Content will be loaded dynamically -->
+    </div>
+  </div>
+
+  <script src="admin-nav-script.js"></script>
+</body>
+</html>

@@ -75,6 +75,17 @@
           <span class="helper-text" style="color: #ff9800; font-weight: 600;">⚠️ Fitur Development: Nonaktifkan sebelum deploy!</span>
         </div>
       </div>
+
+      <!-- Navigation Pane Feature Flag (Admin Only) -->
+      <div id="navPaneToggleSection" style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #e0e0e0; display: none;">
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="enableNavigationPaneCheckbox" style="width: auto; cursor: pointer;">
+            <span>Enable Navigation Pane (Multi-page Dashboard)</span>
+          </label>
+          <span class="helper-text" style="color: #2196f3; font-weight: 600;">ℹ️ Aktifkan untuk menggunakan dashboard dengan navigation sidebar. Refresh halaman setelah mengubah setting ini.</span>
+        </div>
+      </div>
     </div>
 
     <!-- Voucher SRP Management -->
@@ -262,7 +273,13 @@
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
           </svg>
-          Download CSV
+          Download CSV (Downloads)
+        </button>
+        <button id="exportAnalyticsUtmBtn" class="btn btn-success" style="margin-left: 10px;">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+          Download CSV (Analytics by UTM)
         </button>
       </div>
     </div>

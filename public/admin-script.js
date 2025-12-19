@@ -263,6 +263,12 @@ async function loadData() {
     document.getElementById('percentageUsed').textContent = percentage + '%';
     document.getElementById('quotaInput').value = settings.total_quota;
     document.getElementById('allowRedownloadCheckbox').checked = settings.allow_redownload === 1;
+    
+    // Set navigation pane checkbox
+    const navPaneCheckbox = document.getElementById('enableNavigationPaneCheckbox');
+    if (navPaneCheckbox) {
+      navPaneCheckbox.checked = settings.enable_navigation_pane === 1;
+    }
 
     // Setup pagination for downloads
     downloadsPagination.setData(downloads, renderDownloadsTable);
@@ -399,9 +405,14 @@ document.getElementById('resetQuotaBtn').addEventListener('click', async () => {
   }
 });
 
-// Export to CSV
+// Export to CSV (Downloads)
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   window.location.href = '/api/admin/export-csv';
+});
+
+// Export Analytics by UTM
+document.getElementById('exportAnalyticsUtmBtn').addEventListener('click', () => {
+  window.location.href = '/api/admin/export-analytics-utm';
 });
 
 // Export downloads CSV (duplicate button in table section)
@@ -1071,6 +1082,47 @@ async function deleteBatch(batchId) {
   }
 }
 
+// Toggle navigation pane (Admin only)
+document.getElementById('enableNavigationPaneCheckbox')?.addEventListener('change', async (e) => {
+  const enable = e.target.checked;
+  
+  if (enable) {
+    if (!confirm('Aktifkan Navigation Pane?\n\nDashboard akan menggunakan sidebar navigation dengan multiple pages.\n\nHalaman akan di-refresh setelah perubahan.')) {
+      e.target.checked = false;
+      return;
+    }
+  } else {
+    if (!confirm('Nonaktifkan Navigation Pane?\n\nDashboard akan kembali ke single page view.\n\nHalaman akan di-refresh setelah perubahan.')) {
+      e.target.checked = true;
+      return;
+    }
+  }
+
+  try {
+    const response = await fetch('/api/admin/toggle-navigation-pane', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enable })
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert(enable ? '✓ Navigation Pane DIAKTIFKAN\n\nHalaman akan di-refresh...' : '✓ Navigation Pane DINONAKTIFKAN\n\nHalaman akan di-refresh...');
+      // Refresh page to apply changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      alert(data.error || 'Gagal update setting');
+      e.target.checked = !enable;
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+    e.target.checked = !enable;
+  }
+});
+
 // Initialize page
 async function init() {
   const authData = await checkAuth();
@@ -1078,6 +1130,14 @@ async function init() {
     const userRole = authData.admin?.role || 'admin';
     
     console.log('User role:', userRole); // Debug log
+    
+    // Show navigation pane toggle only for admin role
+    if (userRole === 'admin') {
+      const navPaneSection = document.getElementById('navPaneToggleSection');
+      if (navPaneSection) {
+        navPaneSection.style.display = 'block';
+      }
+    }
     
     // Hide sections based on role
     if (userRole === 'crm') {

@@ -1,0 +1,128 @@
+<!-- Vouchers Management Page -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 25px;">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">📊 Voucher Statistics</h2>
+  
+  <!-- Regular Vouchers Stats -->
+  <h3 style="margin-bottom: 15px; margin-top: 0; font-size: 16px; color: #666;">📦 Regular Vouchers (SRP-/ADS-)</h3>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #667eea;" id="voucherTotalRegular">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Total</div>
+    </div>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #4caf50;" id="voucherAvailableRegular">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Tersedia</div>
+    </div>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #f44336;" id="voucherUsedRegular">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Terpakai</div>
+    </div>
+  </div>
+
+  <!-- RT Vouchers Stats -->
+  <h3 style="margin-bottom: 15px; font-size: 16px; color: #666;">🏘️ RT Vouchers (RTT-/RCV-/GRC-)</h3>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #667eea;" id="voucherTotalRT">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Total</div>
+    </div>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #4caf50;" id="voucherAvailableRT">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Tersedia</div>
+    </div>
+    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+      <div style="font-size: 28px; font-weight: bold; color: #f44336;" id="voucherUsedRT">0</div>
+      <div style="font-size: 14px; color: #666; margin-top: 5px;">Terpakai</div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload CSV -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">📤 Upload Voucher CSV</h2>
+  
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">Select CSV File</label>
+    <input type="file" id="csvFileInput" accept=".csv" style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; cursor: pointer; width: 100%;">
+    <span style="display: block; margin-top: 8px; font-size: 13px; color: #999;">Format: Voucher Number, Store, Status, Created at</span>
+  </div>
+  
+  <button id="uploadCsvBtn" disabled style="padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+    📤 Upload & Import CSV
+  </button>
+</div>
+
+<script>
+// Load voucher stats
+async function loadVoucherStatsPage() {
+  try {
+    const response = await fetch('/api/admin/voucher-stats-detailed');
+    const data = await response.json();
+
+    document.getElementById('voucherTotalRegular').textContent = data.regular.total;
+    document.getElementById('voucherAvailableRegular').textContent = data.regular.available;
+    document.getElementById('voucherUsedRegular').textContent = data.regular.used;
+
+    document.getElementById('voucherTotalRT').textContent = data.rt.total;
+    document.getElementById('voucherAvailableRT').textContent = data.rt.available;
+    document.getElementById('voucherUsedRT').textContent = data.rt.used;
+  } catch (error) {
+    console.error('Error loading voucher stats:', error);
+  }
+}
+
+// CSV file input handler
+document.getElementById('csvFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  document.getElementById('uploadCsvBtn').disabled = !file;
+});
+
+// Upload CSV
+document.getElementById('uploadCsvBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('csvFileInput');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert('Pilih file CSV terlebih dahulu');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('csvFile', file);
+
+  const uploadBtn = document.getElementById('uploadCsvBtn');
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = 'Uploading...';
+
+  try {
+    const response = await fetch('/api/admin/upload-csv', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert(
+        `✓ Import berhasil!\n\n` +
+          `Imported: ${data.imported}\n` +
+          `Skipped (duplicate): ${data.skipped}\n` +
+          `Errors: ${data.errors}\n` +
+          `Total: ${data.total}`
+      );
+      fileInput.value = '';
+      loadVoucherStatsPage();
+    } else {
+      alert('Error: ' + (data.error || 'Failed to import CSV'));
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = '📤 Upload & Import CSV';
+  }
+});
+
+// Load stats on page load
+loadVoucherStatsPage();
+</script>
