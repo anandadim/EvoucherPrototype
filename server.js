@@ -151,7 +151,8 @@ async function initDatabase() {
   db.run(`CREATE TABLE IF NOT EXISTS voucher_settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     total_quota INTEGER DEFAULT 100,
-    used_quota INTEGER DEFAULT 0
+    used_quota INTEGER DEFAULT 0,
+    enable_navigation_pane INTEGER DEFAULT 0
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS admin_users (
@@ -193,6 +194,18 @@ async function initDatabase() {
     used_by_download_id INTEGER,
     used_at DATETIME,
     FOREIGN KEY (used_by_download_id) REFERENCES downloads(id)
+  )`);
+
+  // Page views tracking table
+  db.run(`CREATE TABLE IF NOT EXISTS page_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    utm_source TEXT,
+    ip_address TEXT,
+    user_agent TEXT,
+    referrer TEXT,
+    visit_time DATETIME DEFAULT (datetime('now', 'localtime')),
+    visit_date DATE DEFAULT (date('now', 'localtime')),
+    did_download INTEGER DEFAULT 0
   )`);
 
   // Bulk voucher upload tables
@@ -363,6 +376,32 @@ app.post('/api/check-download', (req, res) => {
       });
     });
   });
+});
+
+// Track page view
+app.post('/api/track-view', (req, res) => {
+  const { utm_source } = req.body;
+  const ipAddress = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
+  const referrer = req.headers['referer'] || req.headers['referrer'] || '(direct)';
+
+  // Insert page view record
+  db.run(
+    `INSERT INTO page_views (utm_source, ip_address, user_agent, referrer) 
+     VALUES (?, ?, ?, ?)`,
+    [utm_source || 'direct', ipAddress, userAgent, referrer],
+    function(err) {
+      if (err) {
+        console.error('Error tracking page view:', err);
+        return res.status(500).json({ error: 'Failed to track view' });
+      }
+
+      res.json({ 
+        success: true, 
+        viewId: this.lastID 
+      });
+    }
+  );
 });
 
 // Record download (with NEW rate limiting - IP + Phone)
@@ -569,6 +608,21 @@ app.post('/api/check-download', (req, res) => {
 
                 // Update used quota
                 db.run('UPDATE voucher_settings SET used_quota = used_quota + 1 WHERE id = 1');
+
+                // Mark page view as downloaded (update most recent view from this IP)
+                db.run(
+                  `UPDATE page_views 
+                   SET did_download = 1 
+                   WHERE id = (
+                     SELECT id FROM page_views 
+                     WHERE ip_address = ? 
+                     AND utm_source = ? 
+                     AND did_download = 0 
+                     ORDER BY visit_time DESC 
+                     LIMIT 1
+                   )`,
+                  [ipAddress, utmSource]
+                );
 
                 res.json({
                   success: true,
@@ -938,6 +992,48 @@ app.post('/api/admin/toggle-redownload', requireAuth, (req, res) => {
   }
 });
 
+// Admin: Toggle navigation pane (Feature Flag)
+app.post('/api/admin/toggle-navigation-pane', requireAuth, (req, res) => {
+  const { enable } = req.body;
+  const adminId = req.session.adminId;
+  const ipAddress = getClientIp(req);
+  const adminRole = req.session.adminRole || 'admin';
+
+  // Only admin role can toggle this feature
+  if (adminRole !== 'admin') {
+    return res.status(403).json({ error: 'Only administrators can toggle this feature' });
+  }
+
+  // Check if column exists, if not add it
+  db.run('UPDATE voucher_settings SET enable_navigation_pane = ? WHERE id = 1', [enable ? 1 : 0], function(err) {
+    if (err) {
+      // Column might not exist, try to add it
+      db.run('ALTER TABLE voucher_settings ADD COLUMN enable_navigation_pane INTEGER DEFAULT 0', (alterErr) => {
+        if (alterErr && !alterErr.message.includes('duplicate column')) {
+          return res.status(500).json({ error: 'Database error' });
+        }
+        // Try update again
+        db.run('UPDATE voucher_settings SET enable_navigation_pane = ? WHERE id = 1', [enable ? 1 : 0], (err2) => {
+          if (err2) {
+            return res.status(500).json({ error: 'Database error' });
+          }
+          logAndRespond();
+        });
+      });
+    } else {
+      logAndRespond();
+    }
+  });
+
+  function logAndRespond() {
+    db.run(
+      'INSERT INTO admin_logs (admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+      [adminId, 'TOGGLE_NAVIGATION_PANE', `Set navigation pane to ${enable ? 'enabled' : 'disabled'}`, ipAddress]
+    );
+    res.json({ success: true, message: 'Navigation pane setting updated' });
+  }
+});
+
 // Admin: Export to CSV
 app.get('/api/admin/export-csv', requireAuth, (req, res) => {
   const adminId = req.session.adminId;
@@ -994,6 +1090,136 @@ app.get('/api/admin/export-csv', requireAuth, (req, res) => {
       res.status(500).json({ error: 'Failed to generate CSV' });
     }
   });
+});
+
+// Admin: Get Analytics Data (with date filter)
+app.get('/api/admin/analytics', requireAuth, (req, res) => {
+  const { from, to } = req.query;
+  
+  let dateFilter = '';
+  const params = [];
+  
+  if (from && to) {
+    dateFilter = 'WHERE visit_date BETWEEN ? AND ?';
+    params.push(from, to);
+  } else if (from) {
+    dateFilter = 'WHERE visit_date >= ?';
+    params.push(from);
+  } else if (to) {
+    dateFilter = 'WHERE visit_date <= ?';
+    params.push(to);
+  }
+
+  // Get analytics by UTM source
+  db.all(
+    `SELECT 
+      utm_source,
+      COUNT(*) as total_views,
+      SUM(did_download) as total_downloads,
+      COUNT(*) - SUM(did_download) as views_only,
+      ROUND(SUM(did_download) * 100.0 / COUNT(*), 2) as conversion_rate
+    FROM page_views
+    ${dateFilter}
+    GROUP BY utm_source
+    ORDER BY total_views DESC`,
+    params,
+    (err, bySource) => {
+      if (err) {
+        console.error('Error fetching analytics:', err);
+        return res.status(500).json({ error: 'Failed to fetch analytics data' });
+      }
+
+      // Get summary stats
+      db.get(
+        `SELECT 
+          COUNT(*) as total_views,
+          SUM(did_download) as total_downloads,
+          COUNT(DISTINCT ip_address) as unique_visitors,
+          ROUND(SUM(did_download) * 100.0 / COUNT(*), 2) as conversion_rate
+        FROM page_views
+        ${dateFilter}`,
+        params,
+        (err, summary) => {
+          if (err) {
+            console.error('Error fetching summary:', err);
+            return res.status(500).json({ error: 'Failed to fetch summary data' });
+          }
+
+          res.json({
+            summary: {
+              totalViews: summary.total_views || 0,
+              totalDownloads: summary.total_downloads || 0,
+              uniqueVisitors: summary.unique_visitors || 0,
+              conversionRate: summary.conversion_rate || 0
+            },
+            bySource: bySource
+          });
+        }
+      );
+    }
+  );
+});
+
+// Admin: Export Analytics by UTM Source
+app.get('/api/admin/export-analytics-utm', requireAuth, (req, res) => {
+  const adminId = req.session.adminId;
+  const ipAddress = getClientIp(req);
+  const { from, to } = req.query;
+  
+  let dateFilter = '';
+  const params = [];
+  
+  if (from && to) {
+    dateFilter = 'WHERE visit_date BETWEEN ? AND ?';
+    params.push(from, to);
+  } else if (from) {
+    dateFilter = 'WHERE visit_date >= ?';
+    params.push(from);
+  } else if (to) {
+    dateFilter = 'WHERE visit_date <= ?';
+    params.push(to);
+  }
+
+  // Query analytics data grouped by UTM source
+  db.all(
+    `SELECT 
+      utm_source,
+      COUNT(*) as total_views,
+      SUM(did_download) as total_downloads,
+      COUNT(*) - SUM(did_download) as views_only,
+      ROUND(SUM(did_download) * 100.0 / COUNT(*), 2) as conversion_rate
+    FROM page_views
+    ${dateFilter}
+    GROUP BY utm_source
+    ORDER BY total_views DESC`,
+    params,
+    (err, rows) => {
+      if (err) {
+        console.error('Error fetching analytics:', err);
+        return res.status(500).json({ error: 'Failed to fetch analytics data' });
+      }
+
+      // Generate CSV content
+      let csv = 'UTM Source,Total Views,Total Downloads,Views Only,Conversion Rate (%)\n';
+      
+      rows.forEach(row => {
+        csv += `"${row.utm_source}",${row.total_views},${row.total_downloads || 0},${row.views_only},${row.conversion_rate || 0}\n`;
+      });
+
+      // Log admin action
+      const dateRange = from && to ? ` (${from} to ${to})` : '';
+      db.run(
+        'INSERT INTO admin_logs (admin_id, action, details, ip_address) VALUES (?, ?, ?, ?)',
+        [adminId, 'EXPORT_ANALYTICS_UTM', `Exported analytics by UTM source${dateRange} (${rows.length} rows)`, ipAddress]
+      );
+
+      // Send CSV file
+      const timestamp = new Date().toISOString().split('T')[0];
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename=analytics-utm-${timestamp}.csv`);
+      res.send('\uFEFF' + csv); // Add BOM for Excel UTF-8 support
+    }
+  );
 });
 
 // Admin: Download CSV template for bulk voucher generation

@@ -121,8 +121,18 @@
         const data = await response.json();
         
         if (data.authenticated) {
-          // Already logged in, redirect to dashboard
-          window.location.href = 'admin.html';
+          // Check settings to determine redirect
+          const settingsResponse = await fetch('/api/admin/stats');
+          const settingsData = await settingsResponse.json();
+          
+          const enableNavPane = settingsData.settings?.enable_navigation_pane === 1;
+          const userRole = data.admin?.role || 'admin';
+          
+          if (userRole === 'admin' && enableNavPane) {
+            window.location.href = 'admin-nav.html';
+          } else {
+            window.location.href = 'admin.html';
+          }
         }
       } catch (error) {
         // Not logged in, stay on login page
@@ -157,7 +167,21 @@
         const data = await response.json();
 
         if (response.ok) {
-          window.location.href = 'admin.html';
+          // Check settings to determine which admin page to redirect to
+          const settingsResponse = await fetch('/api/admin/stats');
+          const settingsData = await settingsResponse.json();
+          
+          const enableNavPane = settingsData.settings?.enable_navigation_pane === 1;
+          const userRole = data.admin?.role || 'admin';
+          
+          // Redirect logic:
+          // - Admin role + nav pane enabled → admin-nav.html
+          // - CRM role OR nav pane disabled → admin.html (single page)
+          if (userRole === 'admin' && enableNavPane) {
+            window.location.href = 'admin-nav.html';
+          } else {
+            window.location.href = 'admin.html';
+          }
         } else {
           errorMessage.textContent = data.error || 'Login gagal';
           loginBtn.disabled = false;

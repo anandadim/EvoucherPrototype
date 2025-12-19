@@ -1,0 +1,74 @@
+<!-- Activity Logs Page -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0; font-size: 20px; color: #333;">📝 Activity Logs</h2>
+    <button onclick="refreshLogsPage()" style="padding: 10px 20px; background: #9e9e9e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+      🔄 Refresh
+    </button>
+  </div>
+  
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Timestamp</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Admin</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Action</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">Details</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0;">IP Address</th>
+        </tr>
+      </thead>
+      <tbody id="logsTableBody">
+        <tr>
+          <td colspan="5" style="padding: 40px; text-align: center; color: #999;">Loading activity logs...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+async function loadLogsPage() {
+  try {
+    const response = await fetch('/api/admin/logs');
+    const data = await response.json();
+
+    const tbody = document.getElementById('logsTableBody');
+    
+    if (!data.logs || data.logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding: 40px; text-align: center; color: #999;">Belum ada log aktivitas</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.logs.map(log => {
+      // Color code actions
+      let actionColor = '#333';
+      if (log.action.includes('LOGIN')) actionColor = '#4caf50';
+      if (log.action.includes('LOGOUT')) actionColor = '#ff9800';
+      if (log.action.includes('DELETE')) actionColor = '#f44336';
+      if (log.action.includes('BLOCK')) actionColor = '#f44336';
+      if (log.action.includes('EXPORT')) actionColor = '#2196f3';
+
+      return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${new Date(log.timestamp).toLocaleString('id-ID')}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${log.name}<br><span style="font-size: 12px; color: #999;">${log.email}</span></td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><span style="color: ${actionColor}; font-weight: 600;">${log.action}</span></td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${log.details || '-'}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-family: monospace;">${log.ip_address}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error loading logs:', error);
+    document.getElementById('logsTableBody').innerHTML = 
+      '<tr><td colspan="5" style="padding: 40px; text-align: center; color: #f44336;">Error loading logs</td></tr>';
+  }
+}
+
+function refreshLogsPage() {
+  loadLogsPage();
+}
+
+loadLogsPage();
+</script>

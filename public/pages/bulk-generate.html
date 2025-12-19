@@ -1,0 +1,231 @@
+<!-- Bulk Generate Page -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 25px;">
+  <h2 style="margin: 0 0 15px 0; font-size: 20px; color: #333;">🖼️ Generate Voucher Images (Bulk)</h2>
+  <p style="color: #666; margin-bottom: 20px;">Upload file CSV untuk generate voucher images secara massal</p>
+  
+  <!-- Download Template -->
+  <div style="margin-bottom: 25px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+    <a href="/api/admin/download-csv-template" download style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+      <span style="font-size: 20px;">📥</span>
+      Download Template CSV
+    </a>
+    <span style="margin-left: 15px; color: #666; font-size: 13px;">
+      ℹ️ Template berisi format yang benar dengan contoh data
+    </span>
+  </div>
+
+  <!-- Upload CSV -->
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">Upload File CSV</label>
+    <input type="file" id="bulkCsvFileInput" accept=".csv" style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; cursor: pointer; width: 100%;">
+    <span style="display: block; margin-top: 8px; font-size: 13px; color: #999;">Format: Nama Customer, No Handphone, Tanggal Blasting, Kode Voucher SRP</span>
+  </div>
+
+  <!-- Template Selection -->
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">Pilih Template Cabang</label>
+    <select id="templateSelect" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; width: 100%; cursor: pointer;">
+      <option value="voucher-template.jpeg">Default Template</option>
+      <option value="voucher-template-cibinong.jpg">Cabang Cibinong</option>
+      <option value="voucher-template-cileungsi.jpg">Cabang Cileungsi</option>
+    </select>
+    <span style="display: block; margin-top: 8px; font-size: 13px; color: #999;">Pilih template sesuai cabang untuk generate voucher</span>
+  </div>
+
+  <!-- Generate Button -->
+  <button id="generateBulkBtn" disabled style="padding: 12px 30px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+    🖼️ Generate Images
+  </button>
+
+  <!-- Progress Bar -->
+  <div id="bulkProgress" style="display: none; margin-top: 25px;">
+    <div style="background: #f5f5f5; border-radius: 8px; padding: 20px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <span style="font-weight: 600; color: #333;">Processing...</span>
+        <span id="bulkProgressText" style="font-weight: 600; color: #667eea;">0%</span>
+      </div>
+      <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+        <div id="bulkProgressBar" style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Batch History -->
+<div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+  <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #333;">📦 Batch History</h2>
+  
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Batch ID</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Tanggal</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Total</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Berhasil</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Error</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Images</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #e0e0e0; font-weight: 600; color: #333;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="batchHistoryTableBody">
+        <tr>
+          <td colspan="7" style="padding: 40px; text-align: center; color: #999;">Loading batch history...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Enable/disable generate button
+document.getElementById('bulkCsvFileInput').addEventListener('change', (e) => {
+  document.getElementById('generateBulkBtn').disabled = !e.target.files.length;
+});
+
+// Generate bulk voucher images
+document.getElementById('generateBulkBtn').addEventListener('click', async () => {
+  const fileInput = document.getElementById('bulkCsvFileInput');
+  const templateSelect = document.getElementById('templateSelect');
+  const generateBtn = document.getElementById('generateBulkBtn');
+  const progressDiv = document.getElementById('bulkProgress');
+  const progressBar = document.getElementById('bulkProgressBar');
+  const progressText = document.getElementById('bulkProgressText');
+
+  if (!fileInput.files.length) {
+    alert('Pilih file CSV terlebih dahulu');
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const selectedTemplate = templateSelect.value;
+  
+  const formData = new FormData();
+  formData.append('csvFile', file);
+  formData.append('template', selectedTemplate);
+
+  try {
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Processing...';
+    progressDiv.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.textContent = '0%';
+
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      if (progress < 90) {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        progressText.textContent = progress + '%';
+      }
+    }, 500);
+
+    const response = await fetch('/api/admin/generate-voucher-batch', {
+      method: 'POST',
+      body: formData
+    });
+
+    clearInterval(progressInterval);
+    progressBar.style.width = '100%';
+    progressText.textContent = '100%';
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setTimeout(() => {
+        alert(`✓ Berhasil generate ${data.successCount} voucher images!\n\nTotal: ${data.totalRows}\nBerhasil: ${data.successCount}\nError: ${data.errorCount}\n\nBatch ID: ${data.batchId}`);
+        
+        fileInput.value = '';
+        generateBtn.disabled = true;
+        progressDiv.style.display = 'none';
+        
+        // Reload batch history
+        loadBatchHistoryPage();
+      }, 500);
+    } else {
+      alert('Error: ' + (data.error || 'Failed to generate vouchers'));
+      progressDiv.style.display = 'none';
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+    progressDiv.style.display = 'none';
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = '🖼️ Generate Images';
+  }
+});
+
+// Load batch history
+async function loadBatchHistoryPage() {
+  try {
+    const response = await fetch('/api/admin/voucher-batches');
+    const data = await response.json();
+
+    const tbody = document.getElementById('batchHistoryTableBody');
+    
+    if (!data.batches || data.batches.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding: 40px; text-align: center; color: #999;">Belum ada batch</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.batches.map(batch => {
+      const date = new Date(batch.createdAt);
+      const formattedDate = date.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; font-family: monospace; font-size: 12px;">${batch.batchId}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">${formattedDate}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center;">${batch.totalRows}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center; color: #4caf50; font-weight: 600;">${batch.successCount}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center; color: #f44336; font-weight: 600;">${batch.errorCount}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center;">${batch.imageCount} images</td>
+          <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: center;">
+            <button onclick="downloadBatchPage('${batch.batchId}')" style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; margin-right: 5px;">
+              📥 Download
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error loading batch history:', error);
+    document.getElementById('batchHistoryTableBody').innerHTML = 
+      '<tr><td colspan="7" style="padding: 40px; text-align: center; color: #f44336;">Error loading batches</td></tr>';
+  }
+}
+
+// Download batch
+async function downloadBatchPage(batchId) {
+  try {
+    const response = await fetch(`/api/admin/download-batch/${batchId}`);
+    
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${batchId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } else {
+      const data = await response.json();
+      alert('Error: ' + (data.error || 'Failed to download batch'));
+    }
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+// Load batch history on page load
+loadBatchHistoryPage();
+</script>

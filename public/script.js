@@ -99,6 +99,21 @@ let isDownloaded = false;
     // Store valid UTM in sessionStorage
     sessionStorage.setItem('utm_source', utmSource);
     
+    // Track page view
+    fetch('/api/track-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ utm_source: utmSource })
+    }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log('Page view tracked:', data.viewId);
+        }
+      })
+      .catch(error => {
+        console.error('Error tracking page view:', error);
+      });
+    
     // Log for debugging (remove in production if needed)
     console.log('UTM Source captured:', utmSource);
   } catch (error) {
