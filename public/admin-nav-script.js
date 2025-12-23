@@ -9,11 +9,16 @@ async function checkAuth() {
     const data = await response.json();
 
     if (!data.authenticated) {
-      window.location.href = 'admin-login.html';
+      window.location.href = '/admin-login';
       return null;
     }
 
     adminData = data.admin;
+    
+    // Validate admin access for admin-nav page
+    if (!validateAdminAccess(adminData)) {
+      return null; // Redirect will be handled by validateAdminAccess
+    }
     
     // Update sidebar user info
     document.getElementById('sidebarAdminName').textContent = data.admin.name;
@@ -22,9 +27,28 @@ async function checkAuth() {
 
     return data;
   } catch (error) {
-    window.location.href = 'admin-login.html';
+    window.location.href = '/admin-login';
     return null;
   }
+}
+
+// Role-based access control
+function validateAdminAccess(adminData) {
+  if (!adminData) {
+    console.error('No admin data found');
+    window.location.href = '/admin-login';
+    return false;
+  }
+
+  const allowedRoles = ['admin', 'crm'];
+  if (!allowedRoles.includes(adminData.role)) {
+    console.error('Access denied: Invalid role', adminData.role);
+    alert('Access denied: You do not have permission to access this page.');
+    window.location.href = '/admin';
+    return false;
+  }
+
+  return true;
 }
 
 // Sidebar toggle
@@ -39,16 +63,32 @@ document.getElementById('mobileToggle').addEventListener('click', () => {
 });
 
 // Logout
-document.getElementById('sidebarLogout').addEventListener('click', async () => {
-  if (!confirm('Apakah Anda yakin ingin logout?')) {
-    return;
-  }
+document.getElementById('sidebarLogout').addEventListener('click', () => {
+  // Show logout modal
+  const modal = document.getElementById('logoutModal');
+  modal.classList.add('show');
+});
 
+// Handle logout modal buttons
+document.getElementById('confirmLogoutBtn').addEventListener('click', async () => {
   try {
     await fetch('/api/admin/logout', { method: 'POST' });
-    window.location.href = 'admin-login.html';
+    window.location.href = '/admin-login';
   } catch (error) {
-    console.error('Logout error:', error);
+    console.error('Logout error:', error);    // Close modal on error
+    document.getElementById('logoutModal').classList.remove('show');
+  }
+});
+
+document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
+  // Close logout modal
+  document.getElementById('logoutModal').classList.remove('show');
+});
+
+// Close modal when clicking outside
+document.getElementById('logoutModal').addEventListener('click', (e) => {
+  if (e.target.id === 'logoutModal') {
+    document.getElementById('logoutModal').classList.remove('show');
   }
 });
 
@@ -62,6 +102,12 @@ document.querySelectorAll('.menu-item').forEach(item => {
 
 // Navigate to page
 function navigateToPage(page) {
+  // Check if user has permission to access this page
+  if (!hasPageAccess(page, adminData.role)) {
+    // alert('Access denied: You do not have permission to access this page.');
+    return;
+  }
+
   // Update active menu
   document.querySelectorAll('.menu-item').forEach(item => {
     item.classList.remove('active');
@@ -88,13 +134,24 @@ function navigateToPage(page) {
   document.getElementById('sidebar').classList.remove('mobile-open');
 }
 
+// Check page access based on role
+function hasPageAccess(page, userRole) {
+  // Define page access by role
+  const roleAccess = {
+    'admin': ['dashboard', 'analytics', 'vouchers', 'bulk-generate', 'downloads', 'security', 'logs'],
+    'crm': ['analytics', 'bulk-generate'] // CRM has limited access
+  };
+
+  return roleAccess[userRole] && roleAccess[userRole].includes(page);
+}
+
 // Load page content dynamically
 async function loadPageContent(page) {
   const container = document.getElementById('contentContainer');
   container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
   try {
-    const response = await fetch(`/pages/${page}.html`);
+    const response = await fetch(`/admin/${page}`);
     if (response.ok) {
       const html = await response.text();
       container.innerHTML = html;
@@ -184,7 +241,10 @@ function initBulkGenerate() {
 
 function initDownloads() {
   console.log('Downloads initialized');
-  // Downloads page scripts should be executed automatically
+  // Initialize downloads page
+  if (typeof loadDownloadsPage === 'function') {
+    loadDownloadsPage();
+  }
 }
 
 function initSecurity() {
@@ -283,7 +343,23 @@ window.navigateToPage = navigateToPage;
 document.addEventListener('DOMContentLoaded', async () => {
   const authData = await checkAuth();
   if (authData) {
+    // Hide menu items based on role
+    hideRestrictedMenuItems(authData.admin.role);
+    
     // Load default page
     navigateToPage('dashboard');
   }
 });
+
+// Hide menu items that user doesn't have access to
+function hideRestrictedMenuItems(userRole) {
+  const menuItems = document.querySelectorAll('.menu-item');
+  
+  menuItems.forEach(item => {
+    const page = item.dataset.page;
+    if (!hasPageAccess(page, userRole)) {
+      item.style.display = 'none';
+      item.classList.add('restricted');
+    }
+  });
+}
