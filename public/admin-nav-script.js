@@ -236,7 +236,10 @@ function initVouchers() {
 
 function initBulkGenerate() {
   console.log('Bulk Generate initialized');
-  // Bulk generate page scripts should be executed automatically
+  // Initialize bulk generate page
+  if (typeof loadBatchHistoryPage === 'function') {
+    loadBatchHistoryPage();
+  }
 }
 
 function initDownloads() {
