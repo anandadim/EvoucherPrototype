@@ -39,7 +39,7 @@
 
 <script>
 /* Pagination component (copied from admin-script.js) */
-class Pagination {
+class PaginationDownloads {
   constructor(containerId, rowsPerPage = 20) {
     this.containerId = containerId;
     this.rowsPerPage = rowsPerPage;
@@ -197,6 +197,8 @@ async function loadDownloadsPage() {
     allDownloadsData = data.downloads;
     populateSourceFilter(allDownloadsData);
     downloadsPagination.setData(allDownloadsData, renderDownloadsTable);
+    // Expose render function so filter can reuse it
+    window.renderDownloadsTable = renderDownloadsTable;
 
     function renderDownloadsTable(pageData, startIndex){
        if(pageData.length===0){
@@ -233,7 +235,7 @@ function refreshDownloadsPage() {
   loadDownloadsPage();
 }
 
-const downloadsPagination = new Pagination('downloadsPaginationControls', 20);
+const downloadsPagination = new PaginationDownloads('downloadsPaginationControls', 20);
 
 // initial load
 loadDownloadsPage();

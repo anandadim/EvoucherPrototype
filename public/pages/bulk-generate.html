@@ -30,6 +30,14 @@
       <option value="voucher-template-cileungsi.jpg">Cabang Cileungsi</option>
     </select>
     <span style="display: block; margin-top: 8px; font-size: 13px; color: #999;">Pilih template sesuai cabang untuk generate voucher</span>
+
+    <!-- Include QR checkbox -->
+    <div style="margin-top: 15px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; font-weight: 500;">
+        <input type="checkbox" id="includeQrCheckbox" checked>
+        Tambahkan QR Code ke Voucher
+      </label>
+    </div>
   </div>
 
   <!-- Generate Button -->
@@ -74,6 +82,7 @@
         </tr>
       </tbody>
     </table>
+    <div id="bulkPaginationControls" style="margin-top: 20px;"></div>
   </div>
 </div>
 
@@ -99,10 +108,12 @@ document.getElementById('generateBulkBtn').addEventListener('click', async () =>
 
   const file = fileInput.files[0];
   const selectedTemplate = templateSelect.value;
+  const includeQR = document.getElementById('includeQrCheckbox').checked;
   
   const formData = new FormData();
   formData.append('csvFile', file);
   formData.append('template', selectedTemplate);
+  formData.append('includeQR', includeQR);
 
   try {
     generateBtn.disabled = true;
@@ -156,6 +167,127 @@ document.getElementById('generateBulkBtn').addEventListener('click', async () =>
   }
 });
 
+/* Pagination component (copied from admin-script.js) */
+class Pagination {
+  constructor(containerId, rowsPerPage = 10) {
+    this.containerId = containerId;
+    this.rowsPerPage = rowsPerPage;
+    this.currentPage = 1;
+    this.allData = [];
+    this.renderCallback = null;
+  }
+  setData(data, renderCallback) {
+    this.allData = data;
+    this.renderCallback = renderCallback;
+    this.currentPage = 1;
+    this.render();
+  }
+  render() {
+    if (!this.renderCallback) return;
+    const startIndex = (this.currentPage - 1) * this.rowsPerPage;
+    const endIndex = startIndex + this.rowsPerPage;
+    const pageData = this.allData.slice(startIndex, endIndex);
+    this.renderCallback(pageData, startIndex);
+    this.renderControls();
+  }
+  renderControls() {
+    const container = document.getElementById(this.containerId);
+    if (!container) return;
+    const totalPages = Math.ceil(this.allData.length / this.rowsPerPage);
+    const startRecord = this.allData.length === 0 ? 0 : (this.currentPage - 1) * this.rowsPerPage + 1;
+    const endRecord = Math.min(this.currentPage * this.rowsPerPage, this.allData.length);
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:15px;background:#f5f5f5;border-radius:8px;">
+        <div style="color:#666;font-size:14px;">
+          ${startRecord}-${endRecord} of ${this.allData.length} | Page ${this.currentPage} of ${totalPages}
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-page" data-action="first" ${this.currentPage===1?'disabled':''}>First</button>
+          <button class="btn-page" data-action="prev" ${this.currentPage===1?'disabled':''}>◀</button>
+          <div style="display:flex;gap:5px;">${this.renderPageNumbers(totalPages)}</div>
+          <button class="btn-page" data-action="next" ${this.currentPage===totalPages||totalPages===0?'disabled':''}>▶</button>
+          <button class="btn-page" data-action="last" ${this.currentPage===totalPages||totalPages===0?'disabled':''}>Last</button>
+          <div style="display:flex;gap:5px;align-items:center;margin-left:10px;">
+            <input type="number" class="page-input" min="1" max="${totalPages}" value="${this.currentPage}" style="width:50px;padding:6px;border:1px solid #ddd;border-radius:4px;text-align:center;">
+            <button class="btn-page" data-action="go">Go</button>
+          </div>
+        </div>
+      </div>`;
+    this.attachEventListeners(totalPages);
+  }
+  renderPageNumbers(totalPages){
+     let html='';
+     if(totalPages<=5){
+        for(let i=1;i<=totalPages;i++){html+=this.createPageButton(i);}  
+     }else{
+       if(this.currentPage<=3){
+         for(let i=1;i<=4;i++){html+=this.createPageButton(i);}  
+         html+='<span style="padding:6px;">...</span>';
+         html+=this.createPageButton(totalPages);
+       }else if(this.currentPage>=totalPages-2){
+         html+=this.createPageButton(1);
+         html+='<span style="padding:6px;">...</span>';
+         for(let i=totalPages-3;i<=totalPages;i++){html+=this.createPageButton(i);}  
+       }else{
+         html+=this.createPageButton(1);
+         html+='<span style="padding:6px;">...</span>';
+         for(let i=this.currentPage-1;i<=this.currentPage+1;i++){html+=this.createPageButton(i);}  
+         html+='<span style="padding:6px;">...</span>';
+         html+=this.createPageButton(totalPages);
+       }
+     }
+     return html;
+  }
+  createPageButton(pageNum){
+     const isActive=pageNum===this.currentPage;
+     return `<button class="btn-page-num" data-page="${pageNum}" style="padding:6px 10px;border:1px solid ${isActive?'#667eea':'#ddd'};background:${isActive?'#667eea':'white'};color:${isActive?'white':'#333'};border-radius:4px;cursor:pointer;font-size:13px;font-weight:${isActive?'600':'normal'};">${pageNum}</button>`;
+  }
+  attachEventListeners(totalPages){
+    const container=document.getElementById(this.containerId);
+    if(!container) return;
+    container.querySelectorAll('.btn-page').forEach(btn=>{
+       btn.addEventListener('click',e=>{
+         const action=e.target.dataset.action;
+         switch(action){
+           case 'first': this.goToPage(1); break;
+           case 'prev': this.goToPage(this.currentPage-1); break;
+           case 'next': this.goToPage(this.currentPage+1); break;
+           case 'last': this.goToPage(totalPages); break;
+           case 'go':
+             const input=container.querySelector('.page-input');
+             const page=parseInt(input.value);
+             this.goToPage(page);
+             break;
+         }
+       });
+    });
+    container.querySelectorAll('.btn-page-num').forEach(btn=>{
+        btn.addEventListener('click',e=>{
+            const page=parseInt(e.target.dataset.page);
+            this.goToPage(page);
+        });
+    });
+    const input=container.querySelector('.page-input');
+    if(input){
+      input.addEventListener('keypress',e=>{
+        if(e.key==='Enter'){
+           const page=parseInt(e.target.value);
+           this.goToPage(page);
+        }
+      });
+    }
+  }
+  goToPage(page){
+    const totalPages=Math.ceil(this.allData.length/this.rowsPerPage);
+    if(page<1||page>totalPages||isNaN(page)) return;
+    this.currentPage=page;
+    this.render();
+  }
+}
+
+/* End Pagination component */
+
+
 // Load batch history
 async function loadBatchHistoryPage() {
   try {
@@ -166,10 +298,23 @@ async function loadBatchHistoryPage() {
     
     if (!data.batches || data.batches.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="padding: 40px; text-align: center; color: #999;">Belum ada batch</td></tr>';
+      document.getElementById('bulkPaginationControls').innerHTML = '';
       return;
     }
 
-    tbody.innerHTML = data.batches.map(batch => {
+
+    // Setup pagination with fetched batch data
+    bulkPagination.setData(data.batches, renderBatchesTable);
+        // Expose render function so filter can reuse it
+    window.renderBatchesTable = renderBatchesTable;
+
+
+    function renderBatchesTable(pageData, startIndex){
+       if(pageData.length===0){
+         tbody.innerHTML='<tr><td colspan="6" style="padding: 40px; text-align: center; color: #999;">Belum ada data download</td></tr>';
+         return;
+       }
+    tbody.innerHTML = pageData.map((batch, idx) => {
       const date = new Date(batch.createdAt);
       const formattedDate = date.toLocaleString('id-ID', {
         day: '2-digit',
@@ -195,6 +340,7 @@ async function loadBatchHistoryPage() {
         </tr>
       `;
     }).join('');
+  }
   } catch (error) {
     console.error('Error loading batch history:', error);
     document.getElementById('batchHistoryTableBody').innerHTML = 
@@ -226,6 +372,12 @@ async function downloadBatchPage(batchId) {
   }
 }
 
-// Load batch history on page load
+const bulkPagination = new Pagination('bulkPaginationControls', 10);
+
+// dloadBulkPage = loadBulkPage;
+// initial load
 loadBatchHistoryPage();
+
+// Load batch history on page load
+// loadBatchHistoryPage();
 </script>

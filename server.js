@@ -1805,7 +1805,7 @@ function getTemplateCoordinates(templateName) {
 }
 
 // Helper: Generate single voucher image
-async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphone, outputPath, templateName = 'voucher-template.jpeg') {
+async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphone, outputPath, templateName = 'voucher-template.jpeg', includeQR = true) {
   try {
     // Load template image
     const templatePath = path.join(__dirname, 'public/images', templateName);
@@ -1846,6 +1846,11 @@ async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphon
 
     const qrImage = new Image();
     qrImage.src = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+
+    // Draw QR if requested
+    if(includeQR && coords.qr){
+      ctx.drawImage(qrImage, coords.qr.x, coords.qr.y, coords.qr.size, coords.qr.size);
+    }
 
     // All voucher details (QR, code, phone, date) are hidden from blast image
 
@@ -1908,6 +1913,7 @@ app.post('/api/admin/generate-voucher-batch', requireAuth, upload.single('csvFil
   const adminId = req.session.adminId;
   const ipAddress = getClientIp(req);
   const selectedTemplate = req.body.template || 'voucher-template.jpeg'; // Get template from request
+  const includeQR = req.body.includeQR === 'true' || req.body.includeQR === true; // Checkbox param
 
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
@@ -2029,7 +2035,7 @@ app.post('/api/admin/generate-voucher-batch', requireAuth, upload.single('csvFil
         const filename = `${cleanVoucherCode}_${cleanPhone}_${cleanDateFile}.jpeg`;
         const outputPath = path.join(batchPath, filename);
         
-        await generateBulkVoucherImage(voucherCode, tanggalBlastingRow, noHandphone, outputPath, selectedTemplate);
+        await generateBulkVoucherImage(voucherCode, tanggalBlastingRow, noHandphone, outputPath, selectedTemplate, includeQR);
         
         // Save to database with success status
         await new Promise((resolve, reject) => {
