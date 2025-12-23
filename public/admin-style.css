@@ -111,6 +111,78 @@ header h1 {
   gap: 10px;
 }
 
+.qr-controls {
+  margin-top: 20px;
+  background: #f9f9ff;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.qr-controls.qr-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.qr-input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+}
+
+.qr-input-grid label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qr-input-grid input {
+  padding: 10px 12px;
+  border: 1px solid #d6dcff;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+}
+
+.qr-preview-card {
+  background: white;
+  border: 1px dashed rgba(102, 126, 234, 0.5);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.qr-preview-card canvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+}
+
+#qrPreviewStatus {
+  font-size: 13px;
+  color: #667eea;
+  font-weight: 600;
+  text-align: center;
+}
+
+.btn-compact {
+  padding: 10px 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .form-group label {
   color: #333;
   font-weight: 600;

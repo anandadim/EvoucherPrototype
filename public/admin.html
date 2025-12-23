@@ -210,7 +210,37 @@
         <span class="helper-text">Pilih template sesuai cabang untuk generate voucher</span>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <div class="form-group" style="margin-top: 10px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600;">
+          <input type="checkbox" id="includeQrCheckbox" checked style="width: auto; cursor: pointer;">
+          <span>Tambahkan QR Code ke Voucher</span>
+        </label>
+        <span class="helper-text">Nonaktifkan jika ingin menghilangkan QR code dari batch ini.</span>
+      </div>
+
+      <div id="qrCoordinateControls" class="qr-controls">
+        <div class="qr-input-grid">
+          <label>
+            QR Posisi X (px)
+            <input type="number" id="qrXInput" min="0" step="1" placeholder="195">
+          </label>
+          <label>
+            QR Posisi Y (px)
+            <input type="number" id="qrYInput" min="0" step="1" placeholder="400">
+          </label>
+          <label>
+            QR Ukuran (px)
+            <input type="number" id="qrSizeInput" min="10" step="1" placeholder="320">
+          </label>
+          <button type="button" id="resetQrCoordsBtn" class="btn btn-secondary btn-compact" style="align-self: flex-end;">Reset Koordinat Default</button>
+        </div>
+        <div class="qr-preview-card">
+          <canvas id="qrPreviewCanvas" width="600" height="360"></canvas>
+          <div id="qrPreviewStatus">Preview siap digunakan.</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
         <button id="generateBulkBtn" class="btn btn-primary" disabled>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="display: inline-block; vertical-align: middle;">
             <path d="M13 7H7v6h6V7z"/>
@@ -427,6 +457,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="admin-script.js"></script>
 </body>
 </html>

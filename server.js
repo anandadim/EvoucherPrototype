@@ -13,6 +13,41 @@ const csvParser = require('csv-parser');
 const fs = require('fs');
 require('dotenv').config();
 
+const DEFAULT_TEMPLATE_NAME = 'voucher-template.jpeg';
+
+const TEMPLATE_CONFIGS = {
+  'voucher-template.jpeg': {
+    qr: { x: 195, y: 400, size: 320 },
+    voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
+    tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
+    phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
+  },
+  'voucher-template-cibinong.jpg': {
+    qr: { x: 195, y: 400, size: 320 },
+    voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
+    tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
+    phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
+  },
+  'voucher-template-cileungsi.jpg': {
+    qr: { x: 195, y: 400, size: 320 },
+    voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
+    tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
+    phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
+  }
+};
+
+function cloneTemplateConfig(config) {
+  return JSON.parse(JSON.stringify(config));
+}
+
+function sanitizeNumericField(value) {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 const app = express();
 app.set('trust proxy', 1); // Trust only first proxy (Nginx)
 const PORT = process.env.PORT || 3000;
@@ -1777,35 +1812,26 @@ function createBatchFolder(batchId) {
 }
 
 // Helper: Get template-specific coordinates
-function getTemplateCoordinates(templateName) {
-  // Define coordinates for each template
-  const templateConfigs = {
-    'voucher-template.jpeg': {
-      qr: { x: 195, y: 400, size: 320 },
-      voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
-      tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
-      phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
-    },
-    'voucher-template-cibinong.jpg': {
-      qr: { x: 195, y: 400, size: 320 },
-      voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
-      tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
-      phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
-    },
-    'voucher-template-cileungsi.jpg': {
-      qr: { x: 195, y: 400, size: 320 },
-      voucherCode: { x: 1030, y: 420, font: 'bold 42px Arial', color: '#ffffff' },
-      tanggal: { x: 1030, y: 500, font: 'bold 32px Arial', color: '#333333' },
-      phone: { x: 1030, y: 550, font: 'bold 32px Arial', color: '#333333' }
-    }
-  };
+function getTemplateCoordinates(templateName, overrides = {}) {
+  const baseConfig = TEMPLATE_CONFIGS[templateName] || TEMPLATE_CONFIGS[DEFAULT_TEMPLATE_NAME];
+  const coords = cloneTemplateConfig(baseConfig);
 
-  // Return config for template, or default if not found
-  return templateConfigs[templateName] || templateConfigs['voucher-template.jpeg'];
+  if (coords.qr) {
+    const overrideQr = overrides.qr || overrides;
+    const overrideX = sanitizeNumericField(overrideQr?.x);
+    const overrideY = sanitizeNumericField(overrideQr?.y);
+    const overrideSize = sanitizeNumericField(overrideQr?.size);
+
+    if (overrideX !== undefined) coords.qr.x = overrideX;
+    if (overrideY !== undefined) coords.qr.y = overrideY;
+    if (overrideSize !== undefined) coords.qr.size = overrideSize;
+  }
+
+  return coords;
 }
 
 // Helper: Generate single voucher image
-async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphone, outputPath, templateName = 'voucher-template.jpeg', includeQR = true) {
+async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphone, outputPath, templateName = 'voucher-template.jpeg', includeQR = true, coordinateOverrides = {}) {
   try {
     // Load template image
     const templatePath = path.join(__dirname, 'public/images', templateName);
@@ -1829,7 +1855,7 @@ async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphon
     ctx.drawImage(templateImage, 0, 0);
 
     // Get coordinates for this template
-    const coords = getTemplateCoordinates(templateName);
+    const coords = getTemplateCoordinates(templateName, coordinateOverrides);
     
     console.log(`Generating voucher with template: ${templateName}`);
     console.log(`Using coordinates:`, coords);
@@ -1914,6 +1940,16 @@ app.post('/api/admin/generate-voucher-batch', requireAuth, upload.single('csvFil
   const ipAddress = getClientIp(req);
   const selectedTemplate = req.body.template || 'voucher-template.jpeg'; // Get template from request
   const includeQR = req.body.includeQR === 'true' || req.body.includeQR === true; // Checkbox param
+  let coordsOverride = {};
+
+  if (req.body.coordsOverride) {
+    try {
+      coordsOverride = JSON.parse(req.body.coordsOverride);
+    } catch (parseError) {
+      console.warn('Invalid coordsOverride payload, ignoring:', parseError.message);
+      coordsOverride = {};
+    }
+  }
 
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
@@ -2035,7 +2071,15 @@ app.post('/api/admin/generate-voucher-batch', requireAuth, upload.single('csvFil
         const filename = `${cleanVoucherCode}_${cleanPhone}_${cleanDateFile}.jpeg`;
         const outputPath = path.join(batchPath, filename);
         
-        await generateBulkVoucherImage(voucherCode, tanggalBlastingRow, noHandphone, outputPath, selectedTemplate, includeQR);
+        await generateBulkVoucherImage(
+          voucherCode,
+          tanggalBlastingRow,
+          noHandphone,
+          outputPath,
+          selectedTemplate,
+          includeQR,
+          coordsOverride
+        );
         
         // Save to database with success status
         await new Promise((resolve, reject) => {

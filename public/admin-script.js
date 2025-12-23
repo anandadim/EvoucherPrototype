@@ -1,6 +1,299 @@
 let deleteId = null;
 
 // ============================================
+// QR PREVIEW CONFIGURATION & HELPERS
+// ============================================
+
+const QR_PREVIEW_DEFAULT_TEMPLATE = 'voucher-template.jpeg';
+const QR_PREVIEW_SAMPLE_TEXT = 'VCH-PREVIEW-123456';
+const QR_LIBRARY_URL = '/qrcode.min.js';
+
+const QR_TEMPLATE_MAP = {
+  'voucher-template.jpeg': { qr: { x: 195, y: 400, size: 320 } },
+  'voucher-template-cibinong.jpg': { qr: { x: 195, y: 400, size: 320 } },
+  'voucher-template-cileungsi.jpg': { qr: { x: 195, y: 400, size: 320 } }
+};
+
+const qrTemplateImageCache = {};
+let qrPreviewRequestId = 0;
+let qrLibraryPromise = null;
+
+function getTemplateDefaultCoords(templateName) {
+  return QR_TEMPLATE_MAP[templateName] || QR_TEMPLATE_MAP[QR_PREVIEW_DEFAULT_TEMPLATE];
+}
+
+function parseNumericInput(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function loadTemplateImage(templateName) {
+  return new Promise((resolve, reject) => {
+    const name = templateName && typeof templateName === 'string' ? templateName : QR_PREVIEW_DEFAULT_TEMPLATE;
+    if (qrTemplateImageCache[name]) {
+      resolve(qrTemplateImageCache[name]);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      qrTemplateImageCache[name] = img;
+      resolve(img);
+    };
+    img.onerror = (err) => reject(err);
+    img.src = `/images/${name}`;
+  });
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = (err) => reject(err);
+    img.src = dataUrl;
+  });
+}
+
+function debounce(fn, delay = 150) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(null, args), delay);
+  };
+}
+
+function ensureQrLibraryLoaded() {
+  if (window.QRCode) {
+    return Promise.resolve();
+  }
+
+  if (!qrLibraryPromise) {
+    qrLibraryPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = QR_LIBRARY_URL;
+      script.async = true;
+      script.onload = () => {
+        if (window.QRCode) {
+          resolve();
+        } else {
+          reject(new Error('QRCode global not found after loading script'));
+        }
+      };
+      script.onerror = () => {
+        reject(new Error('Failed to load QRCode library'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  return qrLibraryPromise;
+}
+
+async function generateQrDataUrl(text, size) {
+  await ensureQrLibraryLoaded();
+
+  return new Promise((resolve, reject) => {
+    try {
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-10000px';
+      container.style.top = '-10000px';
+      container.style.width = `${size}px`;
+      container.style.height = `${size}px`;
+      container.style.pointerEvents = 'none';
+      document.body.appendChild(container);
+
+      container.innerHTML = '';
+      const qrInstance = new QRCode(container, {
+        text,
+        width: size,
+        height: size,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel?.H ?? QRCode.CorrectLevel?._default ?? 2
+      });
+
+      // qrcodejs renders synchronously, but defer to ensure DOM updates complete
+      requestAnimationFrame(() => {
+        try {
+          let dataUrl;
+          const canvas = container.querySelector('canvas');
+          if (canvas && canvas.toDataURL) {
+            dataUrl = canvas.toDataURL('image/png');
+          } else {
+            const img = container.querySelector('img');
+            if (img && img.src) {
+              dataUrl = img.src;
+            }
+          }
+
+          container.remove();
+
+          if (dataUrl) {
+            resolve(dataUrl);
+          } else {
+            reject(new Error('QR canvas not generated'));
+          }
+        } catch (error) {
+          container.remove();
+          reject(error);
+        }
+      });
+
+      // Prevent unused variable lint warnings
+      void qrInstance;
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+function setupQrPreviewControls() {
+  const canvas = document.getElementById('qrPreviewCanvas');
+  const templateSelect = document.getElementById('templateSelect');
+  const includeCheckbox = document.getElementById('includeQrCheckbox');
+  const qrXInput = document.getElementById('qrXInput');
+  const qrYInput = document.getElementById('qrYInput');
+  const qrSizeInput = document.getElementById('qrSizeInput');
+  const resetBtn = document.getElementById('resetQrCoordsBtn');
+  const statusEl = document.getElementById('qrPreviewStatus');
+  const controlsContainer = document.getElementById('qrCoordinateControls');
+
+  if (!canvas || !canvas.getContext || !templateSelect || !includeCheckbox || !qrXInput || !qrYInput || !qrSizeInput || !resetBtn || !statusEl) {
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+
+  function setStatus(message) {
+    statusEl.textContent = message;
+  }
+
+  function applyTemplateDefaults(templateName) {
+    const defaults = getTemplateDefaultCoords(templateName);
+    if (!defaults?.qr) return;
+
+    qrXInput.value = defaults.qr.x;
+    qrYInput.value = defaults.qr.y;
+    qrSizeInput.value = defaults.qr.size;
+  }
+
+  function ensureInputsHaveValues(templateName) {
+    const defaults = getTemplateDefaultCoords(templateName);
+    if (!defaults?.qr) return;
+
+    if (!qrXInput.value) qrXInput.value = defaults.qr.x;
+    if (!qrYInput.value) qrYInput.value = defaults.qr.y;
+    if (!qrSizeInput.value) qrSizeInput.value = defaults.qr.size;
+
+    qrXInput.placeholder = defaults.qr.x;
+    qrYInput.placeholder = defaults.qr.y;
+    qrSizeInput.placeholder = defaults.qr.size;
+  }
+
+  async function drawQrPreview() {
+    const currentRequest = ++qrPreviewRequestId;
+    const templateName = templateSelect.value || QR_PREVIEW_DEFAULT_TEMPLATE;
+    const includeQr = includeCheckbox.checked;
+
+    controlsContainer.classList.toggle('qr-disabled', !includeQr);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#f4f6ff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    setStatus(includeQr ? 'Memuat preview...' : 'QR code tidak disertakan.');
+
+    let templateImage;
+    try {
+      templateImage = await loadTemplateImage(templateName);
+    } catch (error) {
+      console.error('Failed to load template image for preview:', error);
+      if (currentRequest === qrPreviewRequestId) {
+        setStatus('Gagal memuat template. Periksa koneksi atau nama file.');
+      }
+      return;
+    }
+
+    if (currentRequest !== qrPreviewRequestId) {
+      return;
+    }
+
+    const scale = Math.min(canvas.width / templateImage.width, canvas.height / templateImage.height);
+    const drawWidth = templateImage.width * scale;
+    const drawHeight = templateImage.height * scale;
+    const offsetX = (canvas.width - drawWidth) / 2;
+    const offsetY = (canvas.height - drawHeight) / 2;
+
+    ctx.drawImage(templateImage, offsetX, offsetY, drawWidth, drawHeight);
+
+    if (!includeQr) {
+      if (currentRequest === qrPreviewRequestId) {
+        setStatus('QR code tidak disertakan.');
+      }
+      return;
+    }
+
+    const defaults = getTemplateDefaultCoords(templateName);
+    const qrCoords = defaults?.qr || { x: 0, y: 0, size: 200 };
+
+    const finalX = parseNumericInput(qrXInput.value, qrCoords.x);
+    const finalY = parseNumericInput(qrYInput.value, qrCoords.y);
+    const finalSize = parseNumericInput(qrSizeInput.value, qrCoords.size);
+
+    try {
+      const qrDataUrl = await generateQrDataUrl(QR_PREVIEW_SAMPLE_TEXT, Math.max(80, Math.round(finalSize)));
+
+      if (currentRequest !== qrPreviewRequestId) {
+        return;
+      }
+
+      const qrImage = await loadImageFromDataUrl(qrDataUrl);
+
+      if (currentRequest !== qrPreviewRequestId) {
+        return;
+      }
+
+      const scaledSize = finalSize * scale;
+      const scaledX = offsetX + finalX * scale;
+      const scaledY = offsetY + finalY * scale;
+
+      ctx.drawImage(qrImage, scaledX, scaledY, scaledSize, scaledSize);
+      setStatus('Preview siap digunakan.');
+    } catch (error) {
+      console.error('Failed to render QR preview:', error);
+      if (currentRequest === qrPreviewRequestId) {
+        setStatus('Gagal menggambar QR code.');
+      }
+    }
+  }
+
+  const debouncedDraw = debounce(drawQrPreview, 200);
+
+  templateSelect.addEventListener('change', () => {
+    applyTemplateDefaults(templateSelect.value);
+    debouncedDraw();
+  });
+
+  includeCheckbox.addEventListener('change', () => {
+    controlsContainer.classList.toggle('qr-disabled', !includeCheckbox.checked);
+    debouncedDraw();
+  });
+
+  [qrXInput, qrYInput, qrSizeInput].forEach((input) => {
+    input.addEventListener('input', debouncedDraw);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    applyTemplateDefaults(templateSelect.value);
+    drawQrPreview();
+  });
+
+  ensureInputsHaveValues(templateSelect.value);
+  drawQrPreview();
+}
+
+// ============================================
 // REUSABLE PAGINATION COMPONENT
 // ============================================
 
@@ -889,10 +1182,23 @@ document.getElementById('generateBulkBtn').addEventListener('click', async () =>
 
   const file = fileInput.files[0];
   const selectedTemplate = templateSelect.value;
+  const includeQR = document.getElementById('includeQrCheckbox').checked;
+  const qrXInput = document.getElementById('qrXInput');
+  const qrYInput = document.getElementById('qrYInput');
+  const qrSizeInput = document.getElementById('qrSizeInput');
   
   const formData = new FormData();
   formData.append('csvFile', file);
   formData.append('template', selectedTemplate);
+  formData.append('includeQR', includeQR);
+
+  const qrOverrides = {
+    x: qrXInput?.value,
+    y: qrYInput?.value,
+    size: qrSizeInput?.value
+  };
+
+  formData.append('coordsOverride', JSON.stringify(qrOverrides));
 
   try {
     generateBtn.disabled = true;
@@ -1147,7 +1453,9 @@ async function init() {
     const userRole = authData.admin?.role || 'admin';
     
     console.log('User role:', userRole); // Debug log
-    
+
+    setupQrPreviewControls();
+
     // Show navigation pane toggle only for admin role
     if (userRole === 'admin') {
       const navPaneSection = document.getElementById('navPaneToggleSection');
