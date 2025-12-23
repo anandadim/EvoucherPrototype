@@ -15,7 +15,7 @@
         <p style="margin-top: 5px; opacity: 0.9;">Selamat datang, <span id="adminName">Admin</span></p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="index.html" class="back-link">← Halaman Utama</a>
+        <a href="/" class="back-link">← Halaman Utama</a>
         <button id="logoutBtn" class="back-link" style="border: none; cursor: pointer;">Logout</button>
       </div>
     </header>
@@ -411,6 +411,18 @@
       <div class="modal-buttons">
         <button id="confirmDeleteBlockedIpBtn" class="btn btn-danger">Hapus</button>
         <button id="cancelDeleteBlockedIpBtn" class="btn btn-secondary">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="modal">
+    <div class="modal-content">
+      <h3>Konfirmasi Logout</h3>
+      <p>Apakah Anda yakin ingin logout dari sistem?</p>
+      <div class="modal-buttons">
+        <button id="confirmLogoutBtn" class="btn btn-danger">Logout</button>
+        <button id="cancelLogoutBtn" class="btn btn-secondary">Batal</button>
       </div>
     </div>
   </div>

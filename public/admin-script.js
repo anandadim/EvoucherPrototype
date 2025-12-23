@@ -181,29 +181,46 @@ async function checkAuth() {
     const data = await response.json();
 
     if (!data.authenticated) {
-      window.location.href = 'admin-login.html';
+      window.location.href = '/admin-login';
       return null;
     }
 
     document.getElementById('adminName').textContent = data.admin.name;
     return data; // Return full data object including admin info
   } catch (error) {
-    window.location.href = 'admin-login.html';
+    window.location.href = '/admin-login';
     return null;
   }
 }
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  if (!confirm('Apakah Anda yakin ingin logout?')) {
-    return;
-  }
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  // Show logout modal
+  const modal = document.getElementById('logoutModal');
+  modal.classList.add('show');
+});
 
+// Handle logout modal buttons
+document.getElementById('confirmLogoutBtn').addEventListener('click', async () => {
   try {
     await fetch('/api/admin/logout', { method: 'POST' });
-    window.location.href = 'admin-login.html';
+    window.location.href = '/admin-login';
   } catch (error) {
     console.error('Logout error:', error);
+    // Close modal on error
+    document.getElementById('logoutModal').classList.remove('show');
+  }
+});
+
+document.getElementById('cancelLogoutBtn').addEventListener('click', () => {
+  // Close logout modal
+  document.getElementById('logoutModal').classList.remove('show');
+});
+
+// Close modal when clicking outside
+document.getElementById('logoutModal').addEventListener('click', (e) => {
+  if (e.target.id === 'logoutModal') {
+    document.getElementById('logoutModal').classList.remove('show');
   }
 });
 
@@ -906,7 +923,7 @@ document.getElementById('generateBulkBtn').addEventListener('click', async () =>
     // Check if unauthorized (session expired)
     if (response.status === 401) {
       alert('Session expired. Silakan login kembali.');
-      window.location.href = 'admin-login.html';
+      window.location.href = '/admin-login';
       return;
     }
 

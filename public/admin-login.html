@@ -109,7 +109,7 @@
     </form>
 
     <div class="back-home">
-      <a href="index.html">← Kembali ke Halaman Utama</a>
+      <a href="/">← Kembali ke Halaman Utama</a>
     </div>
   </div>
 
@@ -129,9 +129,9 @@
           const userRole = data.admin?.role || 'admin';
           
           if (userRole === 'admin' && enableNavPane) {
-            window.location.href = 'admin-nav.html';
+            window.location.replace('/admin-nav');
           } else {
-            window.location.href = 'admin.html';
+            window.location.replace('/admin-nav');
           }
         }
       } catch (error) {
@@ -175,12 +175,12 @@
           const userRole = data.admin?.role || 'admin';
           
           // Redirect logic:
-          // - Admin role + nav pane enabled → admin-nav.html
-          // - CRM role OR nav pane disabled → admin.html (single page)
+          // - Admin role + nav pane enabled → admin-nav
+          // - CRM role OR nav pane disabled → admin (single page)
           if (userRole === 'admin' && enableNavPane) {
-            window.location.href = 'admin-nav.html';
+            window.location.replace('/admin-nav');
           } else {
-            window.location.href = 'admin.html';
+            window.location.replace('/admin');
           }
         } else {
           errorMessage.textContent = data.error || 'Login gagal';

@@ -28,7 +28,7 @@ app.use(express.static('public'));
 // Security: Rate limiting for all requests
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 10000, // limit each IP to 100 requests per windowMs
   skip: (req) => {
     // Skip rate limiting for check-auth endpoint
     return req.path === '/api/admin/check-auth';
@@ -1835,50 +1835,50 @@ async function generateBulkVoucherImage(voucherCode, tanggalBlasting, noHandphon
     console.log(`Using coordinates:`, coords);
 
     // HIDDEN - QR Code generation and drawing removed (not needed anymore)
-    // const qrCodeDataUrl = await QRCode.toDataURL(voucherCode, {
-    //   width: 240,
-    //   margin: 1,
-    //   color: {
-    //     dark: '#000000',
-    //     light: '#ffffff'
-    //   }
-    // });
+    const qrCodeDataUrl = await QRCode.toDataURL(voucherCode, {
+      width: 240,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
 
-    // const qrImage = new Image();
-    // qrImage.src = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
+    const qrImage = new Image();
+    qrImage.src = Buffer.from(qrCodeDataUrl.split(',')[1], 'base64');
 
     // All voucher details (QR, code, phone, date) are hidden from blast image
 
-    // // Overlay Voucher Code
-    // ctx.fillStyle = coords.voucherCode.color;
-    // ctx.font = coords.voucherCode.font;
-    // ctx.textAlign = 'center';
-    // ctx.textBaseline = 'middle';
-    // ctx.fillText(voucherCode, coords.voucherCode.x, coords.voucherCode.y);
+    // Overlay Voucher Code
+    ctx.fillStyle = coords.voucherCode.color;
+    ctx.font = coords.voucherCode.font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(voucherCode, coords.voucherCode.x, coords.voucherCode.y);
 
-    // // Overlay Tanggal Blasting
-    // ctx.fillStyle = coords.tanggal.color;
-    // ctx.font = coords.tanggal.font;
-    // ctx.textAlign = 'center';
-    // ctx.fillText(tanggalBlasting, coords.tanggal.x, coords.tanggal.y);
+    // Overlay Tanggal Blasting
+    ctx.fillStyle = coords.tanggal.color;
+    ctx.font = coords.tanggal.font;
+    ctx.textAlign = 'center';
+    ctx.fillText(tanggalBlasting, coords.tanggal.x, coords.tanggal.y);
 
-    // // Overlay No Handphone (format: 0812-3456-7890)
-    // ctx.fillStyle = coords.phone.color;
-    // ctx.font = coords.phone.font;
-    // ctx.textAlign = 'center';
+    // Overlay No Handphone (format: 0812-3456-7890)
+    ctx.fillStyle = coords.phone.color;
+    ctx.font = coords.phone.font;
+    ctx.textAlign = 'center';
     
-    // // Format nomor HP: 628xxx -> 08xxx dengan dash
-    // let formattedPhone = noHandphone;
-    // if (noHandphone.startsWith('62')) {
-    //   formattedPhone = '0' + noHandphone.substring(2);
-    // }
-    // // Add dashes: 08123456789 -> 0812-3456-7890
-    // if (formattedPhone.length >= 11) {
-    //   formattedPhone = formattedPhone.substring(0, 4) + '-' + 
-    //                    formattedPhone.substring(4, 8) + '-' + 
-    //                    formattedPhone.substring(8);
-    // }
-    // ctx.fillText(formattedPhone, coords.phone.x, coords.phone.y);
+    // Format nomor HP: 628xxx -> 08xxx dengan dash
+    let formattedPhone = noHandphone;
+    if (noHandphone.startsWith('62')) {
+      formattedPhone = '0' + noHandphone.substring(2);
+    }
+    // Add dashes: 08123456789 -> 0812-3456-7890
+    if (formattedPhone.length >= 11) {
+      formattedPhone = formattedPhone.substring(0, 4) + '-' + 
+                       formattedPhone.substring(4, 8) + '-' + 
+                       formattedPhone.substring(8);
+    }
+    ctx.fillText(formattedPhone, coords.phone.x, coords.phone.y);
 
     // Save image as JPEG
     const buffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
@@ -2317,7 +2317,90 @@ app.delete('/api/admin/delete-batch/:batchId', requireAuth, (req, res) => {
   }
 });
 
+// Frontend Routes - Serve HTML pages with proper routing
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+app.get('/admin-nav', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-nav.html'));
+});
+
+// Admin Dashboard Routes (Multi-page Navigation)
+app.get('/admin/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'dashboard.html'));
+});
+
+app.get('/admin/vouchers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'vouchers.html'));
+});
+
+app.get('/admin/downloads', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'downloads.html'));
+});
+
+app.get('/admin/analytics', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'analytics.html'));
+});
+
+app.get('/admin/bulk-generate', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'bulk-generate.html'));
+});
+
+app.get('/admin/logs', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'logs.html'));
+});
+
+app.get('/admin/security', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'security.html'));
+});
+
+// Legacy Route Support (for backward compatibility)
+app.get('/pages/:page', (req, res) => {
+  const { page } = req.params;
+  const filePath = path.join(__dirname, 'public', 'pages', `${page}.html`);
+  
+  // Check if file exists
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
+
+// Catch-all handler for undefined routes (serve 404 or redirect to home)
+app.use((req, res) => {
+  // If it's an API route that doesn't exist, return 404
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // For non-API routes, redirect to home
+  res.redirect('/');
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Also accessible via your IP address on port ${PORT}`);
+  console.log(`\n📱 Available Routes:`);
+  console.log(`  🏠 Home: http://localhost:${PORT}/`);
+  console.log(`  🔐 Admin Login: http://localhost:${PORT}/admin-login`);
+  console.log(`  📊 Admin Dashboard: http://localhost:${PORT}/admin`);
+  console.log(`  🎛️  Admin Navigation: http://localhost:${PORT}/admin-nav`);
+  console.log(`\n📋 Admin Pages (Multi-page Dashboard):`);
+  console.log(`  📊 Dashboard: http://localhost:${PORT}/admin/dashboard`);
+  console.log(`  🎫 Vouchers: http://localhost:${PORT}/admin/vouchers`);
+  console.log(`  📥 Downloads: http://localhost:${PORT}/admin/downloads`);
+  console.log(`  📈 Analytics: http://localhost:${PORT}/admin/analytics`);
+  console.log(`  🖼️  Bulk Generate: http://localhost:${PORT}/admin/bulk-generate`);
+  console.log(`  📝 Logs: http://localhost:${PORT}/admin/logs`);
+  console.log(`  🔒 Security: http://localhost:${PORT}/admin/security`);
 });

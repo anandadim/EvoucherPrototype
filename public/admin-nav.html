@@ -12,10 +12,8 @@
   <!-- Navigation Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2>🎫 Admin Panel</h2>
-      <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+      <h2>Admin Panel</h2>
     </div>
-    
     <div class="sidebar-user">
       <div class="user-avatar">👤</div>
       <div class="user-info">
@@ -67,17 +65,30 @@
   <div class="main-content" id="mainContent">
     <header class="top-header">
       <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">🎫</button>
         <button class="mobile-toggle" id="mobileToggle">☰</button>
         <h1 id="pageTitle">Dashboard</h1>
       </div>
       <div class="header-right">
-        <a href="index.html" class="btn-link">← Halaman Utama</a>
+        <a href="/" class="btn-link">← Halaman Utama</a>
       </div>
     </header>
 
     <!-- Content Container (Dynamic) -->
     <div class="content-container" id="contentContainer">
       <!-- Content will be loaded dynamically -->
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="modal">
+    <div class="modal-content">
+      <h3>Logout</h3>
+      <p>Apakah Anda yakin ingin logout dari sistem?</p>
+      <div class="modal-buttons">
+        <button id="confirmLogoutBtn" class="btn btn-danger">Logout</button>
+        <button id="cancelLogoutBtn" class="btn btn-secondary">Batal</button>
+      </div>
     </div>
   </div>
 
